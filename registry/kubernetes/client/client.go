@@ -14,6 +14,7 @@ import (
 type Kubernetes interface {
 	GetEndpoints(serviceName string) (*Endpoints, error)
 	UpdatePod(podName string, pod *Pod) error
+	GetPod(name string) (*Pod, error)
 	GetPods(labels map[string]string) (*PodList, error)
 	GetServices() (*ServiceList, error)
 	WatchEndpoints() (*WatchRequest, error)
@@ -105,6 +106,7 @@ type Item struct {
 // Meta ...
 type Meta struct {
 	Name        string            `json:"name,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 

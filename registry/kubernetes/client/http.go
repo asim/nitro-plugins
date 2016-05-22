@@ -29,9 +29,22 @@ func (k *Client) GetEndpoints(serviceName string) (*Endpoints, error) {
 	return &data, nil
 }
 
+// GetPod returns a single pod by name
+func (k *Client) GetPod(name string) (*Pod, error) {
+	url, err := k.buildURL("pods/" + name)
+	if err != nil {
+		return nil, err
+	}
+	var pod Pod
+	if err := k.get(url, &pod); err != nil {
+		return nil, err
+	}
+	return &pod, nil
+}
+
 // UpdatePod issues a PATCH to "/pods/{name}"
-func (k *Client) UpdatePod(podName string, pod *Pod) error {
-	url, err := k.buildURL("pods/" + podName)
+func (k *Client) UpdatePod(name string, pod *Pod) error {
+	url, err := k.buildURL("pods/" + name)
 	if err != nil {
 		return err
 	}

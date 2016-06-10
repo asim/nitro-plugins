@@ -99,6 +99,12 @@ func (t *transportSocket) Recv(m *transport.Message) error {
 		return errors.New("message passed in is nil")
 	}
 
+	msg, err := t.socket.RecvMsg()
+	if err != nil {
+		return err
+	}
+	t.msg = msg
+
 	if err := json.Unmarshal(t.msg.Body, &m); err != nil {
 		return err
 	}
@@ -112,9 +118,11 @@ func (t *transportSocket) Send(m *transport.Message) error {
 		return err
 	}
 
-	t.msg.Body = b
-
-	return t.socket.SendMsg(t.msg)
+	if t.msg != nil {
+		t.msg.Body = b
+		return t.socket.SendMsg(t.msg)
+	}
+	return errors.New("invalid socket state - you have to call Recv first")
 }
 
 func (t *transportSocket) Close() error {
@@ -160,14 +168,8 @@ func (t *transportListener) Close() error {
 
 func (t *transportListener) Accept(fn func(transport.Socket)) error {
 	for {
-		msg, err := t.socket.RecvMsg()
-		if err != nil {
-			return err
-		}
-
-		go fn(&transportSocket{
+		fn(&transportSocket{
 			socket: t.socket,
-			msg:    msg,
 		})
 	}
 }
@@ -262,26 +264,29 @@ func (n *ntport) Listen(addr string, opts ...transport.ListenOption) (transport.
 				}
 				config = &tls.Config{Certificates: []tls.Certificate{cert}}
 			}
-			return sock.NewListener("tls+tcp://"+addr, map[string]interface{}{
+			l, err := sock.NewListener("tls+tcp://"+addr, map[string]interface{}{
 				mangos.OptionTLSConfig: config,
 			})
+			if err != nil {
+				return nil, err
+			}
+			return l, l.Listen()
 		}
 
 		l, err = listen(addr, fn)
 	} else {
 		sock.AddTransport(tcp.NewTransport())
 		fn := func(addr string) (mangos.Listener, error) {
-			return sock.NewListener("tcp://"+addr, nil)
+			l, err := sock.NewListener("tcp://"+addr, nil)
+			if err != nil {
+				return nil, err
+			}
+			return l, l.Listen()
 		}
 
 		l, err = listen(addr, fn)
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	l.Listen()
 	return &transportListener{
 		listener: l,
 		socket:   sock,

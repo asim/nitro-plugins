@@ -31,6 +31,7 @@ type transportListener struct {
 
 type transportSocket struct {
 	socket mangos.Socket
+	c      chan *mangos.Message
 	msg    *mangos.Message
 }
 
@@ -99,11 +100,7 @@ func (t *transportSocket) Recv(m *transport.Message) error {
 		return errors.New("message passed in is nil")
 	}
 
-	msg, err := t.socket.RecvMsg()
-	if err != nil {
-		return err
-	}
-	t.msg = msg
+	t.msg = <-t.c
 
 	if err := json.Unmarshal(t.msg.Body, &m); err != nil {
 		return err
@@ -167,10 +164,19 @@ func (t *transportListener) Close() error {
 }
 
 func (t *transportListener) Accept(fn func(transport.Socket)) error {
+	sendChan := make(chan *mangos.Message)
 	for {
-		fn(&transportSocket{
+		m, err := t.socket.RecvMsg()
+		if err != nil {
+			return err
+		}
+
+		go fn(&transportSocket{
 			socket: t.socket,
+			c:      sendChan,
 		})
+
+		sendChan <- m
 	}
 }
 

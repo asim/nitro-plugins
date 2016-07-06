@@ -86,6 +86,26 @@ func (r *blacklistSelector) String() string {
 	return "blacklist"
 }
 
+func NewSelector(opts ...selector.Option) selector.Selector {
+	sopts := selector.Options{
+		Strategy: selector.Random,
+	}
+
+	for _, opt := range opts {
+		opt(&sopts)
+	}
+
+	if sopts.Registry == nil {
+		sopts.Registry = registry.DefaultRegistry
+	}
+
+	return &blacklistSelector{
+		so:   sopts,
+		exit: make(chan bool),
+		bl:   newBlacklist(),
+	}
+}
+
 func newSelector(opts ...selector.Option) selector.Selector {
 	sopts := selector.Options{
 		Strategy: selector.Random,

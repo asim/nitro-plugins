@@ -10,7 +10,7 @@ import (
 )
 
 func TestSimpleMessageEcho(t *testing.T) {
-	tp, err := setUpTestTransport()
+	tp, err := setUpTestTransport(t)
 	require.NoError(t, err)
 
 	listener, err := tp.Listen("")
@@ -42,7 +42,7 @@ func TestSimpleMessageEcho(t *testing.T) {
 }
 
 func BenchmarkSimpleMessageEcho(b *testing.B) {
-	tp, err := setUpTestTransport()
+	tp, err := setUpTestTransport(b)
 	require.NoError(b, err)
 
 	listener, err := tp.Listen("")

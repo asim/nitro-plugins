@@ -12,7 +12,7 @@ import (
 func TestSocketClose(t *testing.T) {
 	t.SkipNow()
 
-	tp, err := setUpTestTransport()
+	tp, err := setUpTestTransport(t)
 	require.NoError(t, err)
 
 	listener, err := tp.Listen("")

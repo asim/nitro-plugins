@@ -40,6 +40,9 @@ func (c *client) Recv(m *microtransport.Message) error {
 }
 
 func (c *client) Close() error {
+	if err := c.Send(&microtransport.Message{Header: map[string]string{"Close": "true"}}); err != nil {
+		return err
+	}
 	c.sub.Unsubscribe()
 	c.conn.Close()
 	return nil

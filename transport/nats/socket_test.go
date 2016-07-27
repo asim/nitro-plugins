@@ -10,8 +10,6 @@ import (
 )
 
 func TestSocketClose(t *testing.T) {
-	t.SkipNow()
-
 	tp, err := setUpTestTransport(t)
 	require.NoError(t, err)
 

@@ -44,6 +44,9 @@ func (s *socket) Recv(m *microtransport.Message) error {
 	if err := json.Unmarshal(r.Data, &m); err != nil {
 		return err
 	}
+	if m.Header["Close"] == "true" {
+		return io.EOF
+	}
 	return nil
 }
 

@@ -1,3 +1,4 @@
+// Package redis provides a Redis broker
 package redis
 
 import (

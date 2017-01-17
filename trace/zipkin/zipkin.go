@@ -11,10 +11,10 @@ import (
 	"github.com/micro/go-os/trace"
 	"github.com/micro/go-plugins/trace/zipkin/thrift/gen-go/zipkincore"
 
+	"log"
+
 	"github.com/apache/thrift/lib/go/thrift"
 	sarama "gopkg.in/Shopify/sarama.v1"
-
-	"golang.org/x/net/context"
 )
 
 type zipkinKey struct{}
@@ -84,7 +84,7 @@ func toEndpoint(s *registry.Service) *zipkincore.Endpoint {
 		return nil
 	}
 	ep := zipkincore.NewEndpoint()
-	binary.LittleEndian.PutUint32(addrs[0], (uint32)(ep.Ipv4))
+	ep.Ipv4 = int32(binary.BigEndian.Uint32(addrs[0].To4()))
 	ep.Port = int16(s.Nodes[0].Port)
 	ep.ServiceName = s.Name
 	return ep
@@ -158,13 +158,17 @@ func (z *zipkin) pub(s *zipkincore.Span, pr sarama.SyncProducer) {
 func (z *zipkin) run() {
 	t := time.NewTicker(z.opts.BatchInterval)
 
-	c, err := sarama.NewClient(z.opts.Collectors, sarama.NewConfig())
+	config := sarama.NewConfig()
+	config.Producer.Return.Successes = true
+	c, err := sarama.NewClient(z.opts.Collectors, config)
 	if err != nil {
+		log.Println("fail to initialize the kafka client: ", err)
 		return
 	}
 
 	p, err := sarama.NewSyncProducerFromClient(c)
 	if err != nil {
+		log.Println("fail to initialize the kafka client: ", err)
 		return
 	}
 
@@ -245,46 +249,6 @@ func (z *zipkin) NewSpan(s *trace.Span) *trace.Span {
 		ParentId:  s.ParentId,
 		Timestamp: s.Timestamp,
 	}
-}
-
-func (z *zipkin) FromContext(ctx context.Context) (*trace.Span, bool) {
-	s, ok := ctx.Value(zipkinKey{}).(*trace.Span)
-	return s, ok
-}
-
-func (z *zipkin) NewContext(ctx context.Context, s *trace.Span) context.Context {
-	return context.WithValue(ctx, zipkinKey{}, s)
-}
-
-func (z *zipkin) FromHeader(md map[string]string) (*trace.Span, bool) {
-	var debug bool
-	if md[SampleHeader] == "1" {
-		debug = true
-	}
-
-	// can we get span header and trace header?
-	if len(md[SpanHeader]) == 0 && len(md[TraceHeader]) == 0 {
-		return nil, false
-	}
-
-	return z.NewSpan(&trace.Span{
-		Id:       md[SpanHeader],
-		TraceId:  md[TraceHeader],
-		ParentId: md[ParentHeader],
-		Debug:    debug,
-	}), true
-}
-
-func (z *zipkin) NewHeader(md map[string]string, s *trace.Span) map[string]string {
-	sample := "0"
-	if s.Debug {
-		sample = "1"
-	}
-	md[SpanHeader] = s.Id
-	md[TraceHeader] = s.TraceId
-	md[ParentHeader] = s.ParentId
-	md[SampleHeader] = sample
-	return md
 }
 
 func (z *zipkin) String() string {

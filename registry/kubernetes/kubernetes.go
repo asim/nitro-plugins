@@ -1,3 +1,4 @@
+// Package kubernetes provides a kubernetes registry
 package kubernetes
 
 import (

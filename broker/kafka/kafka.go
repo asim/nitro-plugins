@@ -1,8 +1,5 @@
+// Package kafka provides a kafka broker using sarama cluster
 package kafka
-
-/*
-	Kafka broker is an implementation of the go-micro/broker using sarama cluster.
-*/
 
 import (
 	"log"

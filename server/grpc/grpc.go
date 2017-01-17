@@ -1,3 +1,4 @@
+// Package grpc provides a grpc server
 package grpc
 
 import (
@@ -124,24 +125,37 @@ func (g *grpcServer) accept(conn net.Conn) {
 }
 
 func (g *grpcServer) serveStream(t transport.ServerTransport, stream *transport.Stream) {
+	// Ensure Foo.Bar or /helloworld.Foo/Bar
 	serviceMethod := strings.Split(stream.Method(), ".")
-	if len(serviceMethod) != 2 {
-		if err := t.WriteStatus(stream, codes.InvalidArgument, fmt.Sprintf("malformed method name: %q", stream.Method())); err != nil {
+	// Ensure 2 parts and not blank
+	if len(serviceMethod) != 2 || len(serviceMethod[0]) == 0 || len(serviceMethod[1]) == 0 {
+		err := t.WriteStatus(stream, codes.InvalidArgument, fmt.Sprintf("malformed method name: %q", stream.Method()))
+		if err != nil {
 			log.Printf("grpc: Server.serveStream failed to write status: %v", err)
 		}
 		return
 	}
 
-native:
+	// is grpc method? /helloworld.Foo/Bar
+	if serviceMethod[0][0] == '/' {
+		// operate on Foo/Bar
+		parts := strings.Split(serviceMethod[1], "/")
+		if len(parts) != 2 {
+			err := t.WriteStatus(stream, codes.InvalidArgument, fmt.Sprintf("malformed method name: %q", stream.Method()))
+			if err != nil {
+				log.Printf("grpc: Server.serveStream failed to write status: %v", err)
+			}
+			return
+		}
+		// replace method
+		serviceMethod[0] = parts[0]
+		serviceMethod[1] = parts[1]
+	}
+
 	g.rpc.mu.Lock()
 	service := g.rpc.serviceMap[serviceMethod[0]]
 	g.rpc.mu.Unlock()
 	if service == nil {
-		serviceMethod = strings.Split(serviceMethod[1], "/")
-		if len(serviceMethod) == 2 {
-			goto native
-		}
-
 		if err := t.WriteStatus(stream, codes.Unimplemented, fmt.Sprintf("unknown service %v", service)); err != nil {
 			log.Printf("grpc: Server.serveStream failed to write status: %v", err)
 		}
@@ -153,6 +167,7 @@ native:
 		if err := t.WriteStatus(stream, codes.Unimplemented, fmt.Sprintf("unknown service %v", service)); err != nil {
 			log.Printf("grpc: Server.serveStream failed to write status: %v", err)
 		}
+		return
 	}
 
 	// get grpc metadata
@@ -284,7 +299,13 @@ func (g *grpcServer) processRequest(t transport.ServerTransport, stream *transpo
 
 		// Unmarshal request
 		if err := codec.Unmarshal(req, argv.Interface()); err != nil {
-			return err
+			statusCode = convertCode(err)
+			statusDesc = err.Error()
+			if err := t.WriteStatus(stream, statusCode, statusDesc); err != nil {
+				log.Printf("grpc: Server.processUnaryRPC failed to write status: %v", err)
+				return err
+			}
+			return nil
 		}
 
 		if argIsValue {
@@ -301,7 +322,7 @@ func (g *grpcServer) processRequest(t transport.ServerTransport, stream *transpo
 		r := &rpcRequest{
 			service:     g.opts.Name,
 			contentType: ct,
-			method:      stream.Method(),
+			method:      fmt.Sprintf("%s.%s", service.name, mtype.method.Name),
 			request:     argv.Interface(),
 		}
 
@@ -364,7 +385,7 @@ func (g *grpcServer) processStream(t transport.ServerTransport, stream *transpor
 	r := &rpcRequest{
 		service:     opts.Name,
 		contentType: ct,
-		method:      stream.Method(),
+		method:      fmt.Sprintf("%s.%s", service.name, mtype.method.Name),
 		stream:      true,
 	}
 

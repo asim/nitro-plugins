@@ -1,3 +1,4 @@
+// Package etcd provides an etcd registry
 package etcd
 
 import (

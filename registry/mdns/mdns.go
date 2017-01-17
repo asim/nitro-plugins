@@ -1,3 +1,4 @@
+// Package mdns provides a multicast DNS registry
 package mdns
 
 import (

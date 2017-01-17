@@ -1,3 +1,4 @@
+// Package etcdv3 provides an etcd version 3 registry
 package etcdv3
 
 import (

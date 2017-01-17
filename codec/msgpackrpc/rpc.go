@@ -1,3 +1,4 @@
+// Package msgpackrpc provides a msgpack-rpc codec
 package msgpackrpc
 
 import (

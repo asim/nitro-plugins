@@ -1,8 +1,5 @@
+// Package Gossip provides a gossip registry based on hashicorp/memberlist
 package gossip
-
-/*
-	Gossip is a gossip based registry using hashicorp/memberlist
-*/
 
 import (
 	"encoding/json"

@@ -1,3 +1,4 @@
+// Package eureka provides a Eureka registry
 package eureka
 
 /*

@@ -1,8 +1,5 @@
+// Package googlepubsub provides a Google cloud pubsub broker
 package googlepubsub
-
-/*
-	Google cloud pubsub broker
-*/
 
 import (
 	"time"

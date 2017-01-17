@@ -1,10 +1,14 @@
-// Package grpc provides a gRPC client
-package grpc
+// Package http provides a http client
+package http
 
 import (
+	"bufio"
 	"bytes"
-	errs "errors"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -18,126 +22,125 @@ import (
 	"github.com/micro/go-micro/selector"
 	"github.com/micro/go-micro/transport"
 
-	"google.golang.org/grpc"
-	gmetadata "google.golang.org/grpc/metadata"
-
 	"golang.org/x/net/context"
 )
 
-type grpcClient struct {
+type httpClient struct {
 	once sync.Once
 	opts client.Options
 }
 
-var (
-	errShutdown = errs.New("connection is shut down")
-)
-
 func init() {
-	cmd.DefaultClients["grpc"] = NewClient
+	cmd.DefaultClients["http"] = NewClient
 }
 
-func (g *grpcClient) call(ctx context.Context, address string, req client.Request, rsp interface{}, opts client.CallOptions) error {
-	header := make(map[string]string)
+func (h *httpClient) call(ctx context.Context, address string, req client.Request, rsp interface{}, opts client.CallOptions) error {
+	header := make(http.Header)
 	if md, ok := metadata.FromContext(ctx); ok {
 		for k, v := range md {
-			header[k] = v
+			header.Set(k, v)
 		}
 	}
 
 	// set timeout in nanoseconds
-	header["timeout"] = fmt.Sprintf("%d", opts.RequestTimeout)
+	header.Set("Timeout", fmt.Sprintf("%d", opts.RequestTimeout))
 	// set the content type for the request
-	header["x-content-type"] = req.ContentType()
+	header.Set("Content-Type", req.ContentType())
 
-	md := gmetadata.New(header)
-	ctx = gmetadata.NewContext(ctx, md)
-
-	cf, err := g.newGRPCCodec(req.ContentType())
+	// get codec
+	cf, err := h.newHTTPCodec(req.ContentType())
 	if err != nil {
 		return errors.InternalServerError("go.micro.client", err.Error())
 	}
 
-	var grr error
-	// TODO: do not use insecure
-	cc, err := grpc.Dial(address, grpc.WithCodec(cf), grpc.WithTimeout(opts.DialTimeout), grpc.WithInsecure())
+	// marshal request
+	b, err := cf.Marshal(req.Request())
 	if err != nil {
-		return errors.InternalServerError("go.micro.client", fmt.Sprintf("Error sending request: %v", err))
-	}
-	defer cc.Close()
-
-	ch := make(chan error, 1)
-
-	go func() {
-		ch <- grpc.Invoke(ctx, methodToGRPC(req.Method(), req.Request()), req.Request(), rsp, cc)
-	}()
-
-	select {
-	case err := <-ch:
-		grr = errs.New(grpc.ErrorDesc(err))
-	case <-ctx.Done():
-		grr = ctx.Err()
+		return errors.InternalServerError("go.micro.client", err.Error())
 	}
 
-	return grr
+	buf := &buffer{bytes.NewBuffer(b)}
+	defer buf.Close()
+
+	hreq := &http.Request{
+		Method: "POST",
+		URL: &url.URL{
+			Scheme: "http",
+			Host:   address,
+			Path:   req.Method(),
+		},
+		Header:        header,
+		Body:          buf,
+		ContentLength: int64(len(b)),
+		Host:          address,
+	}
+
+	// make the request
+	hrsp, err := http.DefaultClient.Do(hreq.WithContext(ctx))
+	if err != nil {
+		return errors.InternalServerError("go.micro.client", err.Error())
+	}
+	defer hrsp.Body.Close()
+
+	// parse response
+	b, err = ioutil.ReadAll(hrsp.Body)
+	if err != nil {
+		return errors.InternalServerError("go.micro.client", err.Error())
+	}
+
+	// unmarshal
+	if err := cf.Unmarshal(b, rsp); err != nil {
+		return errors.InternalServerError("go.micro.client", err.Error())
+	}
+
+	return nil
 }
 
-func (g *grpcClient) stream(ctx context.Context, address string, req client.Request, opts client.CallOptions) (client.Streamer, error) {
-	header := make(map[string]string)
+func (h *httpClient) stream(ctx context.Context, address string, req client.Request, opts client.CallOptions) (client.Streamer, error) {
+	header := make(http.Header)
 	if md, ok := metadata.FromContext(ctx); ok {
 		for k, v := range md {
-			header[k] = v
+			header.Set(k, v)
 		}
 	}
 
 	// set timeout in nanoseconds
-	header["timeout"] = fmt.Sprintf("%d", opts.RequestTimeout)
+	header.Set("Timeout", fmt.Sprintf("%d", opts.RequestTimeout))
 	// set the content type for the request
-	header["x-content-type"] = req.ContentType()
+	header.Set("Content-Type", req.ContentType())
 
-	md := gmetadata.New(header)
-	ctx = gmetadata.NewContext(ctx, md)
-
-	cf, err := g.newGRPCCodec(req.ContentType())
+	// get codec
+	cf, err := h.newHTTPCodec(req.ContentType())
 	if err != nil {
 		return nil, errors.InternalServerError("go.micro.client", err.Error())
 	}
 
-	// TODO: do not use insecure
-	cc, err := grpc.Dial(address, grpc.WithCodec(cf), grpc.WithTimeout(opts.DialTimeout), grpc.WithInsecure())
+	cc, err := net.Dial("tcp", address)
 	if err != nil {
-		return nil, errors.InternalServerError("go.micro.client", fmt.Sprintf("Error sending request: %v", err))
+		return nil, errors.InternalServerError("go.micro.client", fmt.Sprintf("Error dialing: %v", err))
 	}
 
-	desc := &grpc.StreamDesc{
-		StreamName:    req.Service() + req.Method(),
-		ClientStreams: true,
-		ServerStreams: true,
-	}
-
-	st, err := grpc.NewClientStream(ctx, desc, cc, methodToGRPC(req.Method(), req.Request()))
-	if err != nil {
-		return nil, errors.InternalServerError("go.micro.client", fmt.Sprintf("Error creating stream: %v", err))
-	}
-
-	return &grpcStream{
+	return &httpStream{
+		address: address,
 		context: ctx,
-		request: req,
 		closed:  make(chan bool),
-		stream:  st,
 		conn:    cc,
+		codec:   cf,
+		header:  header,
+		reader:  bufio.NewReader(cc),
+		request: req,
 	}, nil
 }
 
-func (g *grpcClient) newGRPCCodec(contentType string) (grpc.Codec, error) {
-	if c, ok := defaultGRPCCodecs[contentType]; ok {
+func (h *httpClient) newHTTPCodec(contentType string) (Codec, error) {
+	if c, ok := defaultHTTPCodecs[contentType]; ok {
 		return c, nil
 	}
 	return nil, fmt.Errorf("Unsupported Content-Type: %s", contentType)
 }
 
-func (g *grpcClient) newCodec(contentType string) (codec.NewCodec, error) {
-	if c, ok := g.opts.Codecs[contentType]; ok {
+func (h *httpClient) newCodec(contentType string) (codec.NewCodec, error) {
+	if c, ok := h.opts.Codecs[contentType]; ok {
 		return c, nil
 	}
 	if cf, ok := defaultRPCCodecs[contentType]; ok {
@@ -146,42 +149,42 @@ func (g *grpcClient) newCodec(contentType string) (codec.NewCodec, error) {
 	return nil, fmt.Errorf("Unsupported Content-Type: %s", contentType)
 }
 
-func (g *grpcClient) Init(opts ...client.Option) error {
+func (h *httpClient) Init(opts ...client.Option) error {
 	for _, o := range opts {
-		o(&g.opts)
+		o(&h.opts)
 	}
 	return nil
 }
 
-func (g *grpcClient) Options() client.Options {
-	return g.opts
+func (h *httpClient) Options() client.Options {
+	return h.opts
 }
 
-func (g *grpcClient) NewPublication(topic string, msg interface{}) client.Publication {
-	return newGRPCPublication(topic, msg, "application/octet-stream")
+func (h *httpClient) NewPublication(topic string, msg interface{}) client.Publication {
+	return newHTTPPublication(topic, msg, "application/proto")
 }
 
-func (g *grpcClient) NewRequest(service, method string, req interface{}, reqOpts ...client.RequestOption) client.Request {
-	return newGRPCRequest(service, method, req, g.opts.ContentType, reqOpts...)
+func (h *httpClient) NewRequest(service, method string, req interface{}, reqOpts ...client.RequestOption) client.Request {
+	return newHTTPRequest(service, method, req, h.opts.ContentType, reqOpts...)
 }
 
-func (g *grpcClient) NewProtoRequest(service, method string, req interface{}, reqOpts ...client.RequestOption) client.Request {
-	return newGRPCRequest(service, method, req, "application/grpc+proto", reqOpts...)
+func (h *httpClient) NewProtoRequest(service, method string, req interface{}, reqOpts ...client.RequestOption) client.Request {
+	return newHTTPRequest(service, method, req, "application/proto", reqOpts...)
 }
 
-func (g *grpcClient) NewJsonRequest(service, method string, req interface{}, reqOpts ...client.RequestOption) client.Request {
-	return newGRPCRequest(service, method, req, "application/grpc+json", reqOpts...)
+func (h *httpClient) NewJsonRequest(service, method string, req interface{}, reqOpts ...client.RequestOption) client.Request {
+	return newHTTPRequest(service, method, req, "application/json", reqOpts...)
 }
 
-func (g *grpcClient) Call(ctx context.Context, req client.Request, rsp interface{}, opts ...client.CallOption) error {
+func (h *httpClient) Call(ctx context.Context, req client.Request, rsp interface{}, opts ...client.CallOption) error {
 	// make a copy of call opts
-	callOpts := g.opts.CallOptions
+	callOpts := h.opts.CallOptions
 	for _, opt := range opts {
 		opt(&callOpts)
 	}
 
 	// get next nodes from the selector
-	next, err := g.opts.Selector.Select(req.Service(), callOpts.SelectOptions...)
+	next, err := h.opts.Selector.Select(req.Service(), callOpts.SelectOptions...)
 	if err != nil && err == selector.ErrNotFound {
 		return errors.NotFound("go.micro.client", err.Error())
 	} else if err != nil {
@@ -208,11 +211,11 @@ func (g *grpcClient) Call(ctx context.Context, req client.Request, rsp interface
 	}
 
 	// make copy of call method
-	gcall := g.call
+	hcall := h.call
 
 	// wrap the call in reverse
 	for i := len(callOpts.CallWrappers); i > 0; i-- {
-		gcall = callOpts.CallWrappers[i-1](gcall)
+		hcall = callOpts.CallWrappers[i-1](hcall)
 	}
 
 	// return errors.New("go.micro.client", "request timeout", 408)
@@ -243,8 +246,8 @@ func (g *grpcClient) Call(ctx context.Context, req client.Request, rsp interface
 		}
 
 		// make the call
-		err = gcall(ctx, addr, req, rsp, callOpts)
-		g.opts.Selector.Mark(req.Service(), node, err)
+		err = hcall(ctx, addr, req, rsp, callOpts)
+		h.opts.Selector.Mark(req.Service(), node, err)
 		return err
 	}
 
@@ -281,23 +284,23 @@ func (g *grpcClient) Call(ctx context.Context, req client.Request, rsp interface
 	return gerr
 }
 
-func (g *grpcClient) CallRemote(ctx context.Context, addr string, req client.Request, rsp interface{}, opts ...client.CallOption) error {
-	callOpts := g.opts.CallOptions
+func (h *httpClient) CallRemote(ctx context.Context, addr string, req client.Request, rsp interface{}, opts ...client.CallOption) error {
+	callOpts := h.opts.CallOptions
 	for _, opt := range opts {
 		opt(&callOpts)
 	}
-	return g.call(ctx, addr, req, rsp, callOpts)
+	return h.call(ctx, addr, req, rsp, callOpts)
 }
 
-func (g *grpcClient) Stream(ctx context.Context, req client.Request, opts ...client.CallOption) (client.Streamer, error) {
+func (h *httpClient) Stream(ctx context.Context, req client.Request, opts ...client.CallOption) (client.Streamer, error) {
 	// make a copy of call opts
-	callOpts := g.opts.CallOptions
+	callOpts := h.opts.CallOptions
 	for _, opt := range opts {
 		opt(&callOpts)
 	}
 
 	// get next nodes from the selector
-	next, err := g.opts.Selector.Select(req.Service(), callOpts.SelectOptions...)
+	next, err := h.opts.Selector.Select(req.Service(), callOpts.SelectOptions...)
 	if err != nil && err == selector.ErrNotFound {
 		return nil, errors.NotFound("go.micro.client", err.Error())
 	} else if err != nil {
@@ -347,8 +350,8 @@ func (g *grpcClient) Stream(ctx context.Context, req client.Request, opts ...cli
 			addr = fmt.Sprintf("%s:%d", addr, node.Port)
 		}
 
-		stream, err := g.stream(ctx, addr, req, callOpts)
-		g.opts.Selector.Mark(req.Service(), node, err)
+		stream, err := h.stream(ctx, addr, req, callOpts)
+		h.opts.Selector.Mark(req.Service(), node, err)
 		return stream, err
 	}
 
@@ -391,22 +394,22 @@ func (g *grpcClient) Stream(ctx context.Context, req client.Request, opts ...cli
 	return nil, grr
 }
 
-func (g *grpcClient) StreamRemote(ctx context.Context, addr string, req client.Request, opts ...client.CallOption) (client.Streamer, error) {
-	callOpts := g.opts.CallOptions
+func (h *httpClient) StreamRemote(ctx context.Context, addr string, req client.Request, opts ...client.CallOption) (client.Streamer, error) {
+	callOpts := h.opts.CallOptions
 	for _, opt := range opts {
 		opt(&callOpts)
 	}
-	return g.stream(ctx, addr, req, callOpts)
+	return h.stream(ctx, addr, req, callOpts)
 }
 
-func (g *grpcClient) Publish(ctx context.Context, p client.Publication, opts ...client.PublishOption) error {
+func (h *httpClient) Publish(ctx context.Context, p client.Publication, opts ...client.PublishOption) error {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
 		md = make(map[string]string)
 	}
 	md["Content-Type"] = p.ContentType()
 
-	cf, err := g.newCodec(p.ContentType())
+	cf, err := h.newCodec(p.ContentType())
 	if err != nil {
 		return errors.InternalServerError("go.micro.client", err.Error())
 	}
@@ -416,18 +419,18 @@ func (g *grpcClient) Publish(ctx context.Context, p client.Publication, opts ...
 		return errors.InternalServerError("go.micro.client", err.Error())
 	}
 
-	g.once.Do(func() {
-		g.opts.Broker.Connect()
+	h.once.Do(func() {
+		h.opts.Broker.Connect()
 	})
 
-	return g.opts.Broker.Publish(p.Topic(), &broker.Message{
+	return h.opts.Broker.Publish(p.Topic(), &broker.Message{
 		Header: md,
 		Body:   b.Bytes(),
 	})
 }
 
-func (g *grpcClient) String() string {
-	return "grpc"
+func (h *httpClient) String() string {
+	return "http"
 }
 
 func newClient(opts ...client.Option) client.Client {
@@ -446,7 +449,7 @@ func newClient(opts ...client.Option) client.Client {
 	}
 
 	if len(options.ContentType) == 0 {
-		options.ContentType = "application/grpc+proto"
+		options.ContentType = "application/proto"
 	}
 
 	if options.Broker == nil {
@@ -463,7 +466,7 @@ func newClient(opts ...client.Option) client.Client {
 		)
 	}
 
-	rc := &grpcClient{
+	rc := &httpClient{
 		once: sync.Once{},
 		opts: options,
 	}

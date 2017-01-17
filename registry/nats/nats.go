@@ -1,3 +1,4 @@
+// Package nats provides a NATS registry using broadcast queries
 package nats
 
 import (

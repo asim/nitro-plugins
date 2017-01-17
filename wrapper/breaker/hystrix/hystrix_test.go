@@ -30,7 +30,7 @@ func TestBreaker(t *testing.T) {
 	var rsp map[string]interface{}
 
 	// Force to point of trip
-	for i := 0; i < (hystrix.DefaultVolumeThreshold * 2); i++ {
+	for i := 0; i < (hystrix.DefaultVolumeThreshold * 3); i++ {
 		c.Call(context.TODO(), req, rsp)
 	}
 

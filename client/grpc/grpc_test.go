@@ -40,7 +40,10 @@ func TestGRPCClient(t *testing.T) {
 	port, _ := strconv.Atoi(parts[len(parts)-1])
 	addr := strings.Join(parts[:len(parts)-1], ":")
 
+	// create mock registry
 	r := mock.NewRegistry()
+
+	// register service
 	r.Register(&registry.Service{
 		Name:    "test",
 		Version: "test",
@@ -53,27 +56,36 @@ func TestGRPCClient(t *testing.T) {
 		},
 	})
 
+	// create selector
 	se := selector.NewSelector(
 		selector.Registry(r),
 	)
 
+	// create client
 	c := NewClient(
 		client.Registry(r),
 		client.Selector(se),
 	)
 
-	req := c.NewRequest("test", "/helloworld.Greeter/SayHello", &pb.HelloRequest{
-		Name: "John",
-	})
-
-	rsp := pb.HelloReply{}
-
-	err = c.Call(context.TODO(), req, &rsp)
-	if err != nil {
-		t.Fatal(err)
+	testMethods := []string{
+		"/helloworld.Greeter/SayHello",
+		"Greeter.SayHello",
 	}
 
-	if rsp.Message != "Hello John" {
-		t.Fatalf("Got unexpected response %v", rsp.Message)
+	for _, method := range testMethods {
+		req := c.NewRequest("test", method, &pb.HelloRequest{
+			Name: "John",
+		})
+
+		rsp := pb.HelloReply{}
+
+		err = c.Call(context.TODO(), req, &rsp)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if rsp.Message != "Hello John" {
+			t.Fatalf("Got unexpected response %v", rsp.Message)
+		}
 	}
 }

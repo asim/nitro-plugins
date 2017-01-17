@@ -1,3 +1,4 @@
+// Package zookeeper provides a zookeeper registry
 package zookeeper
 
 import (

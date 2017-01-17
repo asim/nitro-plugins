@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	pb "github.com/micro/micro/examples/greeter/server/proto/hello"
+	pb "github.com/micro/examples/greeter/srv/proto/hello"
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -58,13 +58,17 @@ func TestGRPCServer(t *testing.T) {
 		t.Fatal("failed to dial server: %v", err)
 	}
 
-	rsp := pb.Response{}
+	testMethods := []string{"Say.Hello", "/helloworld.Say/Hello"}
 
-	if err := grpc.Invoke(context.Background(), "Say.Hello", &pb.Request{Name: "John"}, &rsp, cc); err != nil {
-		t.Fatal("error calling server: %v", err)
-	}
+	for _, method := range testMethods {
+		rsp := pb.Response{}
 
-	if rsp.Msg != "Hello John" {
-		t.Fatalf("Got unexpected response %v", rsp.Msg)
+		if err := grpc.Invoke(context.Background(), method, &pb.Request{Name: "John"}, &rsp, cc); err != nil {
+			t.Fatal("error calling server: %v", err)
+		}
+
+		if rsp.Msg != "Hello John" {
+			t.Fatalf("Got unexpected response %v", rsp.Msg)
+		}
 	}
 }

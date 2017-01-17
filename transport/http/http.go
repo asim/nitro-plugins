@@ -1,3 +1,4 @@
+// Package http provides a http transport
 package http
 
 import (

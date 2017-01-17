@@ -1,3 +1,4 @@
+// Package protorpc provides a proto-rpc codec
 package protorpc
 
 import (

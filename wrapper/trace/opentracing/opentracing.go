@@ -1,3 +1,4 @@
+// Package opentracing provides wrappers for OpenTracing
 package opentracing
 
 import (

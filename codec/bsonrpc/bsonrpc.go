@@ -1,3 +1,4 @@
+// Package bsonrpc provides a bson-rpc codec
 package bsonrpc
 
 import (

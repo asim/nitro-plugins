@@ -1,3 +1,4 @@
+// Package rabbitmq provides a RabbitMQ broker
 package rabbitmq
 
 import (
@@ -74,7 +75,17 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		o(&opt)
 	}
 
-	ch, sub, err := r.conn.Consume(opt.Queue, topic, opt.AutoAck)
+	durableQueue := false
+	if opt.Context != nil {
+		durableQueue, _ = opt.Context.Value(durableQueueKey{}).(bool)
+	}
+
+	ch, sub, err := r.conn.Consume(
+		opt.Queue,
+		topic,
+		opt.AutoAck,
+		durableQueue,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +99,7 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			Header: header,
 			Body:   msg.Body,
 		}
-		handler(&publication{d: msg, m: m, t: topic})
+		handler(&publication{d: msg, m: m, t: msg.RoutingKey})
 	}
 
 	go func() {

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	example "github.com/micro/examples/server/proto/example"
 	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/cmd"
-	example "github.com/micro/go-micro/examples/server/proto/example"
 	"github.com/micro/go-micro/metadata"
 	"github.com/micro/go-os/trace"
 	"github.com/micro/go-plugins/trace/zipkin"

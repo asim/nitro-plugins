@@ -1,3 +1,4 @@
+// Package http provides a http broker
 package http
 
 import (

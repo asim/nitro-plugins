@@ -1,3 +1,4 @@
+// Package nsq provides an NSQ broker
 package nsq
 
 import (

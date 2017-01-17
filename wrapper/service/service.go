@@ -1,3 +1,4 @@
+// Package wrapper injects a go-micro.Service into the context
 package service
 
 import (

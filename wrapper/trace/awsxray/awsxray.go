@@ -1,3 +1,4 @@
+// Package awsxray is a wrapper for AWS X-Ray distributed tracing
 package awsxray
 
 import (

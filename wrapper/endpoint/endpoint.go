@@ -1,3 +1,4 @@
+// Package endpoint provides a wrapper that executes other wrappers for specific methods
 package endpoint
 
 import (

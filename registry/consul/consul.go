@@ -1,3 +1,4 @@
+// Package consul provides a Consul registry
 package consul
 
 import (

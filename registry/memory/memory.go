@@ -1,3 +1,4 @@
+// Package memory provides an in-memory registry
 package memory
 
 import (

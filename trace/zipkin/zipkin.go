@@ -117,9 +117,9 @@ func toThrift(s *trace.Span) *zipkincore.Span {
 			case trace.AnnClientResponse:
 				val = zipkincore.CLIENT_RECV
 			case trace.AnnServerRequest:
-				val = zipkincore.SERVER_SEND
-			case trace.AnnServerResponse:
 				val = zipkincore.SERVER_RECV
+			case trace.AnnServerResponse:
+				val = zipkincore.SERVER_SEND
 			default:
 				val = a.Key
 			}

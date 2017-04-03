@@ -43,6 +43,7 @@ type ntportSocket struct {
 type ntportListener struct {
 	conn *nats.Conn
 	addr string
+	useQueue bool
 	exit chan bool
 
 	sync.RWMutex
@@ -197,7 +198,15 @@ func (n *ntportListener) Close() error {
 }
 
 func (n *ntportListener) Accept(fn func(transport.Socket)) error {
-	s, err := n.conn.SubscribeSync(n.addr)
+	var (
+		s   *nats.Subscription
+		err error
+	)
+	if n.useQueue {
+		s, err = n.conn.QueueSubscribeSync(n.addr, n.addr)
+	} else {
+		s, err = n.conn.SubscribeSync(n.addr)
+	}
 	if err != nil {
 		return err
 	}
@@ -326,8 +335,17 @@ func (n *ntport) Listen(addr string, listenOpts ...transport.ListenOption) (tran
 		return nil, err
 	}
 
+	var useQueue bool
+	if len(addr) == 0 || addr == ":0" {
+		addr = nats.NewInbox()
+		useQueue = false
+	} else {
+		useQueue = true
+	}
+
 	return &ntportListener{
-		addr: nats.NewInbox(),
+		addr: addr,
+		useQueue: useQueue,
 		conn: c,
 		exit: make(chan bool, 1),
 		so:   make(map[string]*ntportSocket),

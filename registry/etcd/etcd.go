@@ -122,25 +122,27 @@ func (e *etcdRegistry) GetService(name string) ([]*registry.Service, error) {
 
 	serviceMap := map[string]*registry.Service{}
 
-	for _, n := range rsp.Node.Nodes {
-		if n.Dir {
-			continue
-		}
-		sn := decode(n.Value)
-
-		s, ok := serviceMap[sn.Version]
-		if !ok {
-			s = &registry.Service{
-				Name:      sn.Name,
-				Version:   sn.Version,
-				Metadata:  sn.Metadata,
-				Endpoints: sn.Endpoints,
+	if rsp != nil {
+		for _, n := range rsp.Node.Nodes {
+			if n.Dir {
+				continue
 			}
-			serviceMap[s.Version] = s
-		}
-
-		for _, node := range sn.Nodes {
-			s.Nodes = append(s.Nodes, node)
+			sn := decode(n.Value)
+	
+			s, ok := serviceMap[sn.Version]
+			if !ok {
+				s = &registry.Service{
+					Name:      sn.Name,
+					Version:   sn.Version,
+					Metadata:  sn.Metadata,
+					Endpoints: sn.Endpoints,
+				}
+				serviceMap[s.Version] = s
+			}
+	
+			for _, node := range sn.Nodes {
+				s.Nodes = append(s.Nodes, node)
+			}
 		}
 	}
 

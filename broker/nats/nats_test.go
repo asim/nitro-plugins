@@ -20,9 +20,18 @@ func TestInitAddrs(t *testing.T) {
 		t.Errorf("Expected Addr count = 2, Actual Addr count = %d", len(nb.Options().Addrs))
 	}
 
-	expectedAddr := fmt.Sprintf("nats://%s,nats://%s", addr1, addr2)
+	natsBroker, ok := nb.(*nbroker)
+	if !ok {
+		t.Fatal("Expected broker to be of types *nbroker")
+	}
 
-	if nb.Address() != expectedAddr {
-		t.Errorf("Expected = '%s', Actual = '%s'", expectedAddr, nb.Address())
+
+	addr1f := fmt.Sprintf("nats://%s", addr1)
+	addr2f := fmt.Sprintf("nats://%s", addr2)
+	expectedAddr := fmt.Sprintf("%s,%s", addr1f, addr2f)
+
+	if natsBroker.addrs[0] != addr1f && natsBroker.addrs[1] != addr2f {
+		actualAddr := fmt.Sprintf("%s,%s", natsBroker.addrs[0], natsBroker.addrs[1])
+		t.Errorf("Expected = '%s', Actual = '%s'", expectedAddr, actualAddr)
 	}
 }

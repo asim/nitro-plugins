@@ -32,4 +32,5 @@ func TestInitAddrs(t *testing.T) {
 		expAddr, actAddr := fmt.Sprintf("%s,%s", addr1f, addr2f), fmt.Sprintf("%s,%s", natsBroker.addrs[0], natsBroker.addrs[1])
 		t.Errorf("Expected = '%s', Actual = '%s'", expAddr, actAddr)
 	}
+
 }

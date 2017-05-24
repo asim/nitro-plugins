@@ -55,10 +55,7 @@ func (n *subscriber) Unsubscribe() error {
 }
 
 func (n *nbroker) Address() string {
-	if len(n.addrs) > 0 {
-		return n.addrs[0]
-	}
-	return ""
+	return strings.Join(n.addrs, ",")
 }
 
 func setAddrs(addrs []string) []string {

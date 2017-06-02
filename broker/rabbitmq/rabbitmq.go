@@ -85,6 +85,8 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		opt.Queue,
 		topic,
 		opt.AutoAck,
+		opt.PrefetchCount,
+		opt.PrefetchSize,
 		durableQueue,
 	)
 	if err != nil {

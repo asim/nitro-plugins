@@ -74,7 +74,7 @@ func (g *grpcClient) call(ctx context.Context, address string, req client.Reques
 
 	select {
 	case err := <-ch:
-		grr = err
+		grr = errs.New(grpc.ErrorDesc(err))
 	case <-ctx.Done():
 		grr = ctx.Err()
 	}

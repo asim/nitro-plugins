@@ -16,6 +16,7 @@ import (
 	"github.com/micro/go-micro/broker"
 	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/codec"
+	microErrors "github.com/micro/go-micro/errors"
 	meta "github.com/micro/go-micro/metadata"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro/server"
@@ -362,6 +363,16 @@ func (g *grpcServer) processRequest(t transport.ServerTransport, stream *transpo
 			if err, ok := appErr.(*rpcError); ok {
 				statusCode = err.code
 				statusDesc = err.desc
+			} else if err, ok := appErr.(*microErrors.Error); ok {
+				switch err.Code {
+				case 404:
+					statusCode = codes.NotFound
+				case 401:
+					statusCode = codes.Unauthenticated
+				default:
+					statusCode = codes.Internal
+				}
+				statusDesc = err.Detail
 			} else {
 				statusCode = convertCode(appErr)
 				statusDesc = appErr.Error()

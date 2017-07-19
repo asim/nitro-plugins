@@ -65,6 +65,7 @@ func (g *grpcClient) call(ctx context.Context, address string, req client.Reques
 	if err != nil {
 		return errors.InternalServerError("go.micro.client", fmt.Sprintf("Error sending request: %v", err))
 	}
+	defer g.pool.release(cc)
 
 	ch := make(chan error, 1)
 

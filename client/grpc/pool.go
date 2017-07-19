@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"sync"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -12,12 +13,53 @@ type pool struct {
 }
 
 type poolConn struct {
-	client *grpc.ClientConn
+	refCount    int32
+	lastRefTime time.Time
+	client      *grpc.ClientConn
+}
+
+func (c *poolConn) addRef() {
+	c.lastRefTime = time.Now()
+	c.refCount++
+}
+
+func (c *poolConn) delRef() {
+	c.lastRefTime = time.Now()
+	c.refCount--
 }
 
 func newPool() *pool {
-	return &pool{
+	out := &pool{
 		conns: make(map[string]*poolConn),
+	}
+
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			out.clear()
+		}
+	}()
+
+	return out
+}
+
+func (p *pool) clear() {
+	p.Lock()
+	defer p.Unlock()
+
+	now := time.Now()
+
+	for k, v := range p.conns {
+		if v.refCount > 0 {
+			continue
+		}
+
+		if now.Sub(v.lastRefTime) < time.Minute*5 {
+			continue
+		}
+
+		delete(p.conns, k)
+		v.client.Close()
 	}
 }
 
@@ -27,6 +69,7 @@ func (p *pool) getConn(addr string, opts ...grpc.DialOption) (*poolConn, error) 
 
 	con, ok := p.conns[addr]
 	if ok {
+		con.addRef()
 		return con, nil
 	}
 
@@ -36,8 +79,16 @@ func (p *pool) getConn(addr string, opts ...grpc.DialOption) (*poolConn, error) 
 		return nil, err
 	}
 
-	con = &poolConn{c}
+	con = &poolConn{client: c}
 	p.conns[addr] = con
 
+	con.addRef()
 	return con, nil
+}
+
+func (p *pool) release(con *poolConn) {
+	p.Lock()
+	defer p.Unlock()
+
+	con.delRef()
 }

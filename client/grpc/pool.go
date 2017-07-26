@@ -7,9 +7,15 @@ import (
 	"google.golang.org/grpc"
 )
 
+const (
+	maxConcurrentStreamsChannel = 100
+	maxIdleTimeChannel          = 30 * time.Second
+	cleanerSleep                = time.Second
+)
+
 type pool struct {
 	sync.Mutex
-	conns map[string]*poolConn
+	conns map[string][]*poolConn
 }
 
 type poolConn struct {
@@ -30,12 +36,12 @@ func (c *poolConn) delRef() {
 
 func newPool() *pool {
 	out := &pool{
-		conns: make(map[string]*poolConn),
+		conns: make(map[string][]*poolConn),
 	}
 
 	go func() {
 		for {
-			time.Sleep(time.Second)
+			time.Sleep(cleanerSleep)
 			out.clear()
 		}
 	}()
@@ -49,28 +55,43 @@ func (p *pool) clear() {
 
 	now := time.Now()
 
-	for k, v := range p.conns {
-		if v.refCount > 0 {
-			continue
-		}
+	for addr, conns := range p.conns {
+		for idx, c := range conns {
+			if c.refCount > 0 {
+				continue
+			}
 
-		if now.Sub(v.lastRefTime) < time.Minute*5 {
-			continue
-		}
+			if now.Sub(c.lastRefTime) < maxIdleTimeChannel {
+				continue
+			}
 
-		delete(p.conns, k)
-		v.client.Close()
+			conns = append(conns[:idx], conns[idx+1:]...)
+			p.conns[addr] = conns
+			c.client.Close()
+		}
 	}
 }
 
-func (p *pool) getConn(addr string, opts ...grpc.DialOption) (*poolConn, error) {
+func (p *pool) getIdleConn(addr string) *poolConn {
 	p.Lock()
 	defer p.Unlock()
 
-	con, ok := p.conns[addr]
-	if ok {
-		con.addRef()
-		return con, nil
+	conns := p.conns[addr]
+
+	for _, conn := range conns {
+		if conn.refCount < maxConcurrentStreamsChannel {
+			conn.addRef()
+			return conn
+		}
+	}
+
+	return nil
+}
+
+func (p *pool) getConn(addr string, opts ...grpc.DialOption) (*poolConn, error) {
+	conn := p.getIdleConn(addr)
+	if conn != nil {
+		return conn, nil
 	}
 
 	// create new conn
@@ -79,11 +100,17 @@ func (p *pool) getConn(addr string, opts ...grpc.DialOption) (*poolConn, error) 
 		return nil, err
 	}
 
-	con = &poolConn{client: c}
-	p.conns[addr] = con
+	conn = &poolConn{client: c}
+	conn.addRef()
 
-	con.addRef()
-	return con, nil
+	p.Lock()
+	defer p.Unlock()
+
+	conns := p.conns[addr]
+	conns = append(conns, conn)
+	p.conns[addr] = conns
+
+	return conn, nil
 }
 
 func (p *pool) release(con *poolConn) {

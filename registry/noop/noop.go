@@ -2,10 +2,15 @@
 package noop
 
 import (
+	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/registry"
 )
 
 type noopRegistry struct{}
+
+func init() {
+	cmd.DefaultRegistries["noop"] = NewRegistry
+}
 
 func (m *noopRegistry) GetService(service string) ([]*registry.Service, error) {
 	return nil, nil
@@ -31,6 +36,6 @@ func (m *noopRegistry) String() string {
 	return "noop"
 }
 
-func NewRegistry() registry.Registry {
+func NewRegistry(opts ...registry.Option) registry.Registry {
 	return &noopRegistry{}
 }

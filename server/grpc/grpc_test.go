@@ -58,7 +58,7 @@ func TestGRPCServer(t *testing.T) {
 		t.Fatal("failed to dial server: %v", err)
 	}
 
-	testMethods := []string{"Say.Hello", "/helloworld.Say/Hello"}
+	testMethods := []string{"Say.Hello", "/helloworld.Say/Hello", "/greeter.helloworld.Say/Hello"}
 
 	for _, method := range testMethods {
 		rsp := pb.Response{}

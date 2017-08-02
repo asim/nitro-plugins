@@ -16,10 +16,10 @@ import (
 	"github.com/micro/go-micro/broker"
 	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/codec"
+	"github.com/micro/go-micro/errors"
 	meta "github.com/micro/go-micro/metadata"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro/server"
-	//"github.com/micro/go-micro/transport"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -130,10 +130,12 @@ func (g *grpcServer) accept(conn net.Conn) {
 }
 
 func (g *grpcServer) serveStream(t transport.ServerTransport, stream *transport.Stream) {
-	// Ensure Foo.Bar or /helloworld.Foo/Bar
+	// Ensure Foo.Bar, /helloworld.Foo/Bar or /greeter.hello.world.Foo/Bar
+	// Internally we only know of Foo.Bar
 	serviceMethod := strings.Split(stream.Method(), ".")
-	// Ensure 2 parts and not blank
-	if len(serviceMethod) != 2 || len(serviceMethod[0]) == 0 || len(serviceMethod[1]) == 0 {
+
+	// Ensure at least 2 parts and not blank
+	if len(serviceMethod) < 2 || len(serviceMethod[0]) == 0 || len(serviceMethod[1]) == 0 {
 		err := t.WriteStatus(stream, status.New(codes.InvalidArgument, fmt.Sprintf("malformed method name: %q", stream.Method())))
 		if err != nil {
 			log.Logf("grpc: Server.serveStream failed to write status: %v", err)
@@ -141,10 +143,10 @@ func (g *grpcServer) serveStream(t transport.ServerTransport, stream *transport.
 		return
 	}
 
-	// is grpc method? /helloworld.Foo/Bar
+	// is grpc method? /greeter.hello.world.Foo/Bar or /helloworld.Foo/Bar
 	if serviceMethod[0][0] == '/' {
 		// operate on Foo/Bar
-		parts := strings.Split(serviceMethod[1], "/")
+		parts := strings.Split(serviceMethod[len(serviceMethod)-1], "/")
 		if len(parts) != 2 {
 			err := t.WriteStatus(stream, status.New(codes.InvalidArgument, fmt.Sprintf("malformed method name: %q", stream.Method())))
 			if err != nil {
@@ -155,6 +157,13 @@ func (g *grpcServer) serveStream(t transport.ServerTransport, stream *transport.
 		// replace method
 		serviceMethod[0] = parts[0]
 		serviceMethod[1] = parts[1]
+		// not a grpc method, so we expect 2 parts
+	} else if len(serviceMethod) != 2 {
+		err := t.WriteStatus(stream, status.New(codes.InvalidArgument, fmt.Sprintf("malformed method name: %q", stream.Method())))
+		if err != nil {
+			log.Logf("grpc: Server.serveStream failed to write status: %v", err)
+		}
+		return
 	}
 
 	g.rpc.mu.Lock()
@@ -353,6 +362,9 @@ func (g *grpcServer) processRequest(t transport.ServerTransport, stream *transpo
 			if err, ok := appErr.(*rpcError); ok {
 				statusCode = err.code
 				statusDesc = err.desc
+			} else if err, ok := appErr.(*errors.Error); ok {
+				statusCode = microError(err)
+				statusDesc = appErr.Error()
 			} else {
 				statusCode = convertCode(appErr)
 				statusDesc = appErr.Error()
@@ -425,6 +437,9 @@ func (g *grpcServer) processStream(t transport.ServerTransport, stream *transpor
 		if err, ok := appErr.(*rpcError); ok {
 			ss.statusCode = err.code
 			ss.statusDesc = err.desc
+		} else if err, ok := appErr.(*errors.Error); ok {
+			ss.statusCode = microError(err)
+			ss.statusDesc = appErr.Error()
 		} else if err, ok := appErr.(transport.StreamError); ok {
 			ss.statusCode = err.Code
 			ss.statusDesc = err.Desc

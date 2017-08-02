@@ -56,8 +56,8 @@ func TestRouter(t *testing.T) {
 				Path:   "/foobar",
 			},
 			ProxyURL: URL{
-				Scheme: "http",
-				Host:   "www.foo.com",
+				Scheme: "https",
+				Host:   "www.google.com",
 				Path:   "/",
 			},
 			Weight: 1.0,

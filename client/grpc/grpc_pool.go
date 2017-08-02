@@ -7,77 +7,115 @@ import (
 	"google.golang.org/grpc"
 )
 
-type pool struct {
-	size int
-	ttl  int64
+const (
+	maxConcurrentStreamsChannel = 100
+	maxIdleTimeChannel          = 30 * time.Second
+	cleanerSleep                = time.Second
+)
 
+type pool struct {
 	sync.Mutex
 	conns map[string][]*poolConn
 }
 
 type poolConn struct {
-	cc      *grpc.ClientConn
-	created int64
+	refCount    int32
+	lastRefTime time.Time
+	client      *grpc.ClientConn
 }
 
-func newPool(size int, ttl time.Duration) *pool {
-	return &pool{
-		size:  size,
-		ttl:   int64(ttl.Seconds()),
+func (c *poolConn) addRef() {
+	c.lastRefTime = time.Now()
+	c.refCount++
+}
+
+func (c *poolConn) delRef() {
+	c.lastRefTime = time.Now()
+	c.refCount--
+}
+
+func newPool() *pool {
+	out := &pool{
 		conns: make(map[string][]*poolConn),
 	}
+
+	go func() {
+		for {
+			time.Sleep(cleanerSleep)
+			out.clear()
+		}
+	}()
+
+	return out
+}
+
+func (p *pool) clear() {
+	p.Lock()
+	defer p.Unlock()
+
+	now := time.Now()
+
+	for addr, conns := range p.conns {
+		for idx, c := range conns {
+			if c.refCount > 0 {
+				continue
+			}
+
+			if now.Sub(c.lastRefTime) < maxIdleTimeChannel {
+				continue
+			}
+
+			conns = append(conns[:idx], conns[idx+1:]...)
+			p.conns[addr] = conns
+			c.client.Close()
+		}
+	}
+}
+
+func (p *pool) getIdleConn(addr string) *poolConn {
+	p.Lock()
+	defer p.Unlock()
+
+	conns := p.conns[addr]
+
+	for _, conn := range conns {
+		if conn.refCount < maxConcurrentStreamsChannel {
+			conn.addRef()
+			return conn
+		}
+	}
+
+	return nil
 }
 
 func (p *pool) getConn(addr string, opts ...grpc.DialOption) (*poolConn, error) {
-	p.Lock()
-	conns := p.conns[addr]
-	now := time.Now().Unix()
-
-	// while we have conns check age and then return one
-	// otherwise we'll create a new conn
-	for len(conns) > 0 {
-		conn := conns[len(conns)-1]
-		conns = conns[:len(conns)-1]
-		p.conns[addr] = conns
-
-		// if conn is old kill it and move on
-		if d := now - conn.created; d > p.ttl {
-			conn.cc.Close()
-			continue
-		}
-
-		// we got a good conn, lets unlock and return it
-		p.Unlock()
-
+	conn := p.getIdleConn(addr)
+	if conn != nil {
 		return conn, nil
 	}
 
-	p.Unlock()
-
 	// create new conn
-	cc, err := grpc.Dial(addr, opts...)
+	c, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &poolConn{cc, time.Now().Unix()}, nil
+	conn = &poolConn{client: c}
+	conn.addRef()
+
+	p.Lock()
+	defer p.Unlock()
+
+	conns := p.conns[addr]
+	conns = append(conns, conn)
+	p.conns[addr] = conns
+
+	return conn, nil
 }
 
-func (p *pool) release(addr string, conn *poolConn, err error) {
-	// don't store the conn if it has errored
-	if err != nil {
-		conn.cc.Close()
-		return
-	}
-
-	// otherwise put it back for reuse
+func (p *pool) release(con *poolConn) {
 	p.Lock()
-	conns := p.conns[addr]
-	if len(conns) >= p.size {
-		p.Unlock()
-		conn.cc.Close()
-		return
-	}
-	p.conns[addr] = append(conns, conn)
-	p.Unlock()
+	defer p.Unlock()
+
+	con.delRef()
 }

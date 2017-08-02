@@ -468,7 +468,7 @@ func newClient(opts ...client.Option) client.Client {
 	rc := &grpcClient{
 		once: sync.Once{},
 		opts: options,
-		pool: newPool(),
+		pool: newPool(options.PoolTTL),
 	}
 
 	c := client.Client(rc)

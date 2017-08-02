@@ -9,13 +9,13 @@ import (
 
 const (
 	maxConcurrentStreamsChannel = 100
-	maxIdleTimeChannel          = 30 * time.Second
 	cleanerSleep                = time.Second
 )
 
 type pool struct {
 	sync.Mutex
-	conns map[string][]*poolConn
+	idleTTL time.Duration
+	conns   map[string][]*poolConn
 }
 
 type poolConn struct {
@@ -34,9 +34,10 @@ func (c *poolConn) delRef() {
 	c.refCount--
 }
 
-func newPool() *pool {
+func newPool(ttl time.Duration) *pool {
 	out := &pool{
-		conns: make(map[string][]*poolConn),
+		idleTTL: ttl,
+		conns:   make(map[string][]*poolConn),
 	}
 
 	go func() {
@@ -61,7 +62,7 @@ func (p *pool) clear() {
 				continue
 			}
 
-			if now.Sub(c.lastRefTime) < maxIdleTimeChannel {
+			if now.Sub(c.lastRefTime) < p.idleTTL {
 				continue
 			}
 

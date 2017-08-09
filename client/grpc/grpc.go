@@ -65,15 +65,12 @@ func (g *grpcClient) call(ctx context.Context, address string, req client.Reques
 	if err != nil {
 		return errors.InternalServerError("go.micro.client", fmt.Sprintf("Error sending request: %v", err))
 	}
-	defer func() {
-		// defer execution of release
-		g.pool.release(address, cc, grr)
-	}()
+	defer g.pool.release(cc)
 
 	ch := make(chan error, 1)
 
 	go func() {
-		err := grpc.Invoke(ctx, methodToGRPC(req.Method(), req.Request()), req.Request(), rsp, cc.cc)
+		err := grpc.Invoke(ctx, methodToGRPC(req.Method(), req.Request()), req.Request(), rsp, cc.client)
 		ch <- microError(err)
 	}()
 
@@ -471,7 +468,7 @@ func newClient(opts ...client.Option) client.Client {
 	rc := &grpcClient{
 		once: sync.Once{},
 		opts: options,
-		pool: newPool(options.PoolSize, options.PoolTTL),
+		pool: newPool(options.PoolTTL),
 	}
 
 	c := client.Client(rc)

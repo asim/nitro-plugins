@@ -104,6 +104,8 @@ func (h *httpServer) Register() error {
 
 	rOpts := []registry.RegisterOption{
 		registry.RegisterTTL(opts.RegisterTTL),
+		registry.CheckInterval(opts.Interval),
+		registry.CheckTCP(opts.TCP),
 	}
 
 	return opts.Registry.Register(service, rOpts...)

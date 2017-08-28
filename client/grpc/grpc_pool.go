@@ -69,6 +69,8 @@ func (p *pool) clear() {
 			conns = append(conns[:idx], conns[idx+1:]...)
 			p.conns[addr] = conns
 			c.client.Close()
+
+			break
 		}
 	}
 }

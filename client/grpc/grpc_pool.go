@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"google.golang.org/grpc"
@@ -14,7 +15,8 @@ const (
 
 type pool struct {
 	sync.Mutex
-	idleTTL time.Duration
+	ttl     time.Duration
+	running uint32
 	conns   map[string][]*poolConn
 }
 
@@ -36,43 +38,65 @@ func (c *poolConn) delRef() {
 
 func newPool(ttl time.Duration) *pool {
 	out := &pool{
-		idleTTL: ttl,
-		conns:   make(map[string][]*poolConn),
+		ttl:   ttl,
+		conns: make(map[string][]*poolConn),
 	}
-
-	go func() {
-		for {
-			time.Sleep(cleanerSleep)
-			out.clear()
-		}
-	}()
 
 	return out
 }
 
-func (p *pool) clear() {
+func (p *pool) cleaner() {
+	for {
+		time.Sleep(cleanerSleep)
+		p.clearConns()
+
+		if len(p.conns) == 0 {
+			if atomic.CompareAndSwapUint32(&p.running, 1, 0) {
+				break
+			}
+		}
+	}
+
+}
+
+func (p *pool) wakeCleaner() {
+	for atomic.LoadUint32(&p.running) != 1 {
+		if atomic.CompareAndSwapUint32(&p.running, 0, 1) {
+			go p.cleaner()
+		}
+	}
+}
+
+func (p *pool) clearConns() {
 	p.Lock()
 	defer p.Unlock()
 
 	now := time.Now()
+	copyConns := make(map[string][]*poolConn, len(p.conns))
 
+	// the table save addr -> conns
 	for addr, conns := range p.conns {
-		for idx, c := range conns {
-			if c.refCount > 0 {
+		copyCons := make([]*poolConn, 0, len(conns))
+
+		// the array save conns
+		for _, c := range conns {
+			// don't release the connection
+			if c.refCount > 0 || now.Sub(c.lastRefTime) < p.ttl {
+				copyCons = append(copyCons, c)
 				continue
 			}
 
-			if now.Sub(c.lastRefTime) < p.idleTTL {
-				continue
-			}
-
-			conns = append(conns[:idx], conns[idx+1:]...)
-			p.conns[addr] = conns
+			// release useless connection
 			c.client.Close()
+		}
 
-			break
+		// if the connections is not empty
+		if len(copyCons) > 0 {
+			copyConns[addr] = copyCons
 		}
 	}
+
+	p.conns = copyConns
 }
 
 func (p *pool) getIdleConn(addr string) *poolConn {
@@ -112,6 +136,8 @@ func (p *pool) getConn(addr string, opts ...grpc.DialOption) (*poolConn, error) 
 	conns := p.conns[addr]
 	conns = append(conns, conn)
 	p.conns[addr] = conns
+
+	p.wakeCleaner()
 
 	return conn, nil
 }

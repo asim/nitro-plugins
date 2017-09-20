@@ -152,6 +152,8 @@ func (g *grpcClient) Init(opts ...client.Option) error {
 	for _, o := range opts {
 		o(&g.opts)
 	}
+
+	g.pool = newPool(g.opts.PoolTTL)
 	return nil
 }
 
@@ -441,6 +443,8 @@ func newClient(opts ...client.Option) client.Client {
 			RequestTimeout: client.DefaultRequestTimeout,
 			DialTimeout:    transport.DefaultDialTimeout,
 		},
+		PoolSize: client.DefaultPoolSize,
+		PoolTTL:  client.DefaultPoolTTL,
 	}
 
 	for _, o := range opts {
@@ -468,7 +472,6 @@ func newClient(opts ...client.Option) client.Client {
 	rc := &grpcClient{
 		once: sync.Once{},
 		opts: options,
-		pool: newPool(options.PoolTTL),
 	}
 
 	c := client.Client(rc)

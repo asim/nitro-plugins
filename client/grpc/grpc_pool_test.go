@@ -10,7 +10,7 @@ import (
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
-func testPool(t *testing.T, size int, ttl time.Duration) {
+func testPool(t *testing.T, ttl time.Duration) {
 	// setup server
 	l, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -25,7 +25,7 @@ func testPool(t *testing.T, size int, ttl time.Duration) {
 	defer s.Stop()
 
 	// zero pool
-	p := newPool(size, ttl)
+	p := newPool(ttl)
 
 	for i := 0; i < 10; i++ {
 		// get a conn
@@ -36,7 +36,7 @@ func testPool(t *testing.T, size int, ttl time.Duration) {
 
 		rsp := pb.HelloReply{}
 
-		err = grpc.Invoke(context.TODO(), "/helloworld.Greeter/SayHello", &pb.HelloRequest{Name: "John"}, &rsp, cc.cc)
+		err = grpc.Invoke(context.TODO(), "/helloworld.Greeter/SayHello", &pb.HelloRequest{Name: "John"}, &rsp, cc.client)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -46,18 +46,12 @@ func testPool(t *testing.T, size int, ttl time.Duration) {
 		}
 
 		// release the conn
-		p.release(l.Addr().String(), cc, nil)
+		p.release(cc)
 
-		p.Lock()
-		if i := len(p.conns[l.Addr().String()]); i > size {
-			p.Unlock()
-			t.Fatalf("pool size %d is greater than expected %d", i, size)
-		}
-		p.Unlock()
 	}
 }
 
 func TestGRPCPool(t *testing.T) {
-	testPool(t, 0, time.Minute)
-	testPool(t, 2, time.Minute)
+	testPool(t, time.Minute)
+	testPool(t, time.Minute)
 }

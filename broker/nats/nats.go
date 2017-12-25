@@ -2,6 +2,7 @@
 package nats
 
 import (
+	"context"
 	"strings"
 
 	"github.com/micro/go-micro/broker"
@@ -14,6 +15,7 @@ type nbroker struct {
 	addrs []string
 	conn  *nats.Conn
 	opts  broker.Options
+	bopts *brokerOptions
 }
 
 type subscriber struct {
@@ -87,10 +89,18 @@ func (n *nbroker) Connect() error {
 		return nil
 	}
 
-	opts := nats.DefaultOptions
+	opts := nats.GetDefaultOptions()
 	opts.Servers = n.addrs
 	opts.Secure = n.opts.Secure
 	opts.TLSConfig = n.opts.TLSConfig
+	opts.MaxReconnect = n.bopts.maxReconnect
+	opts.ReconnectWait = n.bopts.reconnectWait
+	opts.Timeout = n.bopts.timeout
+	opts.PingInterval = n.bopts.pingInterval
+	opts.MaxPingsOut = n.bopts.maxPingOut
+	opts.SubChanLen = n.bopts.maxChanLen
+	opts.ReconnectBufSize = n.bopts.reconnectBufSize
+	opts.Name = n.bopts.name
 
 	// secure might not be set
 	if n.opts.TLSConfig != nil {
@@ -101,7 +111,29 @@ func (n *nbroker) Connect() error {
 	if err != nil {
 		return err
 	}
+
 	n.conn = c
+
+	if n.bopts.closedHandler != nil {
+		n.conn.SetClosedHandler(n.bopts.closedHandler)
+	}
+
+	if n.bopts.disconnectHandler != nil {
+		n.conn.SetDisconnectHandler(n.bopts.disconnectHandler)
+	}
+
+	if n.bopts.discoveredServersHandler != nil {
+		n.conn.SetDiscoveredServersHandler(n.bopts.discoveredServersHandler)
+	}
+
+	if n.bopts.reconnectHandler != nil {
+		n.conn.SetReconnectHandler(n.bopts.reconnectHandler)
+	}
+
+	if n.bopts.errorHandler != nil {
+		n.conn.SetErrorHandler(n.bopts.errorHandler)
+	}
+
 	return nil
 }
 
@@ -166,9 +198,21 @@ func (n *nbroker) String() string {
 }
 
 func NewBroker(opts ...broker.Option) broker.Broker {
+
+	bopts := &brokerOptions{
+		maxReconnect:     DefaultMaxReconnect,
+		reconnectWait:    DefaultReconnectWait,
+		timeout:          DefaultTimeout,
+		pingInterval:     DefaultPingInterval,
+		maxPingOut:       DefaultMaxPingOut,
+		reconnectBufSize: DefaultReconnectBufSize,
+		closedHandler:    nil,
+	}
+
 	options := broker.Options{
 		// Default codec
-		Codec: json.NewCodec(),
+		Codec:   json.NewCodec(),
+		Context: context.WithValue(context.Background(), optionsKey, bopts),
 	}
 
 	for _, o := range opts {
@@ -178,5 +222,6 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 	return &nbroker{
 		addrs: setAddrs(options.Addrs),
 		opts:  options,
+		bopts: bopts,
 	}
 }

@@ -195,7 +195,6 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 		maxPingOut:       DefaultNatsMaxPingOut,
 		reconnectBufSize: DefaultNatsReconnectBufSize,
 		allowReconnect:   DefaultNatsAllowReconnect,
-		closedHandler:    nil,
 	}
 
 	options := broker.Options{

@@ -9,19 +9,20 @@ import (
 
 // default NATS client values
 var (
-	DefaultMaxReconnect     = 60
-	DefaultReconnectWait    = 2 * time.Second
-	DefaultTimeout          = 2 * time.Second
-	DefaultPingInterval     = 2 * time.Minute
-	DefaultMaxPingOut       = 2
-	DefaultMaxChanLen       = 8192            // 8k
-	DefaultReconnectBufSize = 8 * 1024 * 1024 // 8MB
+	DefaultNatsMaxReconnect     = 60
+	DefaultNatsReconnectWait    = 2 * time.Second
+	DefaultNatsTimeout          = 2 * time.Second
+	DefaultNatsPingInterval     = 2 * time.Minute
+	DefaultNatsMaxPingOut       = 2
+	DefaultNatsMaxChanLen       = 8192            // 8k
+	DefaultNatsReconnectBufSize = 8 * 1024 * 1024 // 8MB
+	DefaultNatsAllowReconnect   = true
 
 	optionsKey = optionsKeyType{}
 )
 
-// brokerOptions contains NATS specific options
-type brokerOptions struct {
+// natsOptions contains NATS specific options
+type natsOptions struct {
 	maxReconnect             int
 	name                     string
 	reconnectWait            time.Duration
@@ -30,6 +31,10 @@ type brokerOptions struct {
 	maxPingOut               int
 	maxChanLen               int
 	reconnectBufSize         int
+	allowReconnect           bool
+	username                 string
+	password                 string
+	token                    string
 	closedHandler            func(*nats.Conn)
 	disconnectHandler        func(*nats.Conn)
 	discoveredServersHandler func(*nats.Conn)
@@ -41,91 +46,119 @@ type optionsKeyType struct{}
 
 func MaxReconnect(n int) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.maxReconnect = n
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.maxReconnect = n
 	}
 }
 
 func ReconnectWait(d time.Duration) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.reconnectWait = d
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.reconnectWait = d
 	}
 }
 
 func Timeout(d time.Duration) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.timeout = d
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.timeout = d
 	}
 }
 
 func PingInterval(d time.Duration) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.pingInterval = d
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.pingInterval = d
 	}
 }
 
 func MaxPingOut(n int) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.maxPingOut = n
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.maxPingOut = n
 	}
 }
 
 func MaxChanLen(n int) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.maxChanLen = n
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.maxChanLen = n
 	}
 }
 
 func ReconnectBufSize(n int) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.reconnectBufSize = n
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.reconnectBufSize = n
+	}
+}
+
+func AllowReconnect(b bool) broker.Option {
+	return func(o *broker.Options) {
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.allowReconnect = b
+	}
+}
+
+func Username(s string) broker.Option {
+	return func(o *broker.Options) {
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.username = s
+	}
+}
+
+func Password(s string) broker.Option {
+	return func(o *broker.Options) {
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.password = s
+	}
+}
+
+func Token(s string) broker.Option {
+	return func(o *broker.Options) {
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.token = s
 	}
 }
 
 func ClosedHandler(cb nats.ConnHandler) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.closedHandler = cb
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.closedHandler = cb
 	}
 }
 
 func DisconnectHandler(cb nats.ConnHandler) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.disconnectHandler = cb
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.disconnectHandler = cb
 	}
 }
 
 func DiscoveredServersHandler(cb nats.ConnHandler) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.discoveredServersHandler = cb
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.discoveredServersHandler = cb
 	}
 }
 
 func ReconnectHandler(cb nats.ConnHandler) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.reconnectHandler = cb
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.reconnectHandler = cb
 	}
 }
 
 func ErrorHandler(cb nats.ErrHandler) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.errorHandler = cb
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.errorHandler = cb
 	}
 }
 
 func Name(s string) broker.Option {
 	return func(o *broker.Options) {
-		bo := o.Context.Value(optionsKey).(*brokerOptions)
-		bo.name = s
+		no := o.Context.Value(optionsKey).(*natsOptions)
+		no.name = s
 	}
 }

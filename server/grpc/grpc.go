@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	defaultMaxMsgSize  = 1024 * 1024 * 4 // use 4MB as the default message size limit
+	defaultMaxMsgSize  = 1024 * 1024 * 10 // use 10MB as the default message size limit
 	defaultContentType = "application/grpc"
 )
 

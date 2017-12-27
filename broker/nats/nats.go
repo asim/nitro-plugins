@@ -2,6 +2,7 @@
 package nats
 
 import (
+	"context"
 	"strings"
 
 	"github.com/micro/go-micro/broker"
@@ -14,6 +15,7 @@ type nbroker struct {
 	addrs []string
 	conn  *nats.Conn
 	opts  broker.Options
+	nopts *natsOptions
 }
 
 type subscriber struct {
@@ -87,10 +89,26 @@ func (n *nbroker) Connect() error {
 		return nil
 	}
 
-	opts := nats.DefaultOptions
+	opts := nats.GetDefaultOptions()
 	opts.Servers = n.addrs
 	opts.Secure = n.opts.Secure
 	opts.TLSConfig = n.opts.TLSConfig
+	opts.MaxReconnect = n.nopts.maxReconnect
+	opts.ReconnectWait = n.nopts.reconnectWait
+	opts.Timeout = n.nopts.timeout
+	opts.AllowReconnect = n.nopts.allowReconnect
+	opts.PingInterval = n.nopts.pingInterval
+	opts.MaxPingsOut = n.nopts.maxPingOut
+	opts.SubChanLen = n.nopts.maxChanLen
+	opts.ReconnectBufSize = n.nopts.reconnectBufSize
+	opts.Name = n.nopts.name
+	opts.DisconnectedCB = n.nopts.disconnectHandler
+	opts.ClosedCB = n.nopts.closedHandler
+	opts.DiscoveredServersCB = n.nopts.discoveredServersHandler
+	opts.AsyncErrorCB = n.nopts.errorHandler
+	opts.User = n.nopts.username
+	opts.Password = n.nopts.password
+	opts.Token = n.nopts.token
 
 	// secure might not be set
 	if n.opts.TLSConfig != nil {
@@ -101,7 +119,9 @@ func (n *nbroker) Connect() error {
 	if err != nil {
 		return err
 	}
+
 	n.conn = c
+
 	return nil
 }
 
@@ -166,9 +186,21 @@ func (n *nbroker) String() string {
 }
 
 func NewBroker(opts ...broker.Option) broker.Broker {
+
+	nopts := &natsOptions{
+		maxReconnect:     DefaultNatsMaxReconnect,
+		reconnectWait:    DefaultNatsReconnectWait,
+		timeout:          DefaultNatsTimeout,
+		pingInterval:     DefaultNatsPingInterval,
+		maxPingOut:       DefaultNatsMaxPingOut,
+		reconnectBufSize: DefaultNatsReconnectBufSize,
+		allowReconnect:   DefaultNatsAllowReconnect,
+	}
+
 	options := broker.Options{
 		// Default codec
-		Codec: json.NewCodec(),
+		Codec:   json.NewCodec(),
+		Context: context.WithValue(context.Background(), optionsKey, nopts),
 	}
 
 	for _, o := range opts {
@@ -178,5 +210,6 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 	return &nbroker{
 		addrs: setAddrs(options.Addrs),
 		opts:  options,
+		nopts: nopts,
 	}
 }

@@ -24,7 +24,6 @@ const (
 
 // Amazon SQS Broker
 type sqsBroker struct {
-	session *session.Session
 	svc     *sqs.SQS
 	options broker.Options
 }
@@ -191,8 +190,14 @@ func (b *sqsBroker) Connect() error {
 
 	svc := sqs.New(sess)
 	b.svc = svc
-	b.session = sess
 
+	return nil
+}
+
+// ConnectWithSQSClient receives an instantiated instance of an SQS client and sets that as the client
+// used in SQS requests
+func (b *sqsBroker) ConnectWithSQSClient(svc *sqs.SQS) error {
+	b.svc = svc
 	return nil
 }
 

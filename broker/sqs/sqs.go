@@ -196,6 +196,13 @@ func (b *sqsBroker) Connect() error {
 	return nil
 }
 
+// ConnectWithSQSClient receives an instantiated instance of an SQS client and sets that as the client
+// used in SQS requests
+func (b *sqsBroker) ConnectWithSQSClient(svc *sqs.SQS) error {
+	b.svc = svc
+	return nil
+}
+
 // Disconnect does nothing as there's no live connection to terminate
 func (b *sqsBroker) Disconnect() error {
 	return nil

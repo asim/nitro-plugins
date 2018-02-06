@@ -24,7 +24,6 @@ const (
 
 // Amazon SQS Broker
 type sqsBroker struct {
-	session *session.Session
 	svc     *sqs.SQS
 	options broker.Options
 }
@@ -191,7 +190,6 @@ func (b *sqsBroker) Connect() error {
 
 	svc := sqs.New(sess)
 	b.svc = svc
-	b.session = sess
 
 	return nil
 }

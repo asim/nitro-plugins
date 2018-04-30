@@ -250,11 +250,11 @@ func (g *grpcServer) serveStream(t transport.ServerTransport, stream *transport.
 }
 
 func (g *grpcServer) sendResponse(t transport.ServerTransport, stream *transport.Stream, msg interface{}, codec grpc.Codec, opts *transport.Options) error {
-	hd, p, err := encode(codec, msg, nil, nil, nil)
+	p, err := encode(codec, msg, nil, nil, nil)
 	if err != nil {
 		log.Fatalf("grpc: Server failed to encode response %v", err)
 	}
-	return t.Write(stream, hd, p, opts)
+	return t.Write(stream, p, opts)
 }
 
 func (g *grpcServer) processRequest(t transport.ServerTransport, stream *transport.Stream, service *service, mtype *methodType, codec grpc.Codec, ct string, ctx context.Context) (err error) {

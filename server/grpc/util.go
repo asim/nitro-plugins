@@ -109,7 +109,7 @@ func (p *parser) recvMsg(maxMsgSize int) (pf payloadFormat, msg []byte, err erro
 
 // encode serializes msg and prepends the message header. If msg is nil, it
 // generates the message header of 0 message length.
-func encode(c grpc.Codec, msg interface{}, cp grpc.Compressor, cbuf *bytes.Buffer, outPayload *stats.OutPayload) ([]byte, []byte, error) {
+func encode(c grpc.Codec, msg interface{}, cp grpc.Compressor, cbuf *bytes.Buffer, outPayload *stats.OutPayload) ([]byte, error) {
 	var b []byte
 	const (
 		payloadLen = 1
@@ -120,7 +120,7 @@ func encode(c grpc.Codec, msg interface{}, cp grpc.Compressor, cbuf *bytes.Buffe
 		var err error
 		b, err = c.Marshal(msg)
 		if err != nil {
-			return nil, nil, Errorf(codes.Internal, "grpc: error while marshaling: %v", err.Error())
+			return nil, Errorf(codes.Internal, "grpc: error while marshaling: %v", err.Error())
 		}
 		if outPayload != nil {
 			outPayload.Payload = msg
@@ -130,14 +130,14 @@ func encode(c grpc.Codec, msg interface{}, cp grpc.Compressor, cbuf *bytes.Buffe
 		}
 		if cp != nil {
 			if err := cp.Do(cbuf, b); err != nil {
-				return nil, nil, Errorf(codes.Internal, "grpc: error while compressing: %v", err.Error())
+				return nil, Errorf(codes.Internal, "grpc: error while compressing: %v", err.Error())
 			}
 			b = cbuf.Bytes()
 		}
 	}
 
 	if len(b) > math.MaxUint32 {
-		return nil, nil, Errorf(codes.ResourceExhausted, "grpc: message too large (%d bytes)", len(b))
+		return nil, Errorf(codes.ResourceExhausted, "grpc: message too large (%d bytes)", len(b))
 	}
 
 	bufHeader := make([]byte, payloadLen+sizeLen)
@@ -146,12 +146,13 @@ func encode(c grpc.Codec, msg interface{}, cp grpc.Compressor, cbuf *bytes.Buffe
 	} else {
 		bufHeader[0] = byte(compressionMade)
 	}
+
 	// Write length of b into buf
 	binary.BigEndian.PutUint32(bufHeader[payloadLen:], uint32(len(b)))
 	if outPayload != nil {
 		outPayload.WireLength = payloadLen + sizeLen + len(b)
 	}
-	return bufHeader, b, nil
+	return b, nil
 }
 
 func checkRecvPayload(pf payloadFormat, recvCompress string, dc grpc.Decompressor) error {

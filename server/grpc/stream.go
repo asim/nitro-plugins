@@ -79,7 +79,7 @@ func (r *rpcStream) Context() context.Context {
 }
 
 func (r *rpcStream) Send(m interface{}) (err error) {
-	hd, out, err := encode(r.codec, m, r.cp, r.cbuf, nil)
+	out, err := encode(r.codec, m, r.cp, r.cbuf, nil)
 	defer func() {
 		if r.cbuf != nil {
 			r.cbuf.Reset()
@@ -89,7 +89,7 @@ func (r *rpcStream) Send(m interface{}) (err error) {
 		err = Errorf(codes.Internal, "grpc: %v", err)
 		return err
 	}
-	if err := r.t.Write(r.s, hd, out, &transport.Options{Last: false}); err != nil {
+	if err := r.t.Write(r.s, out, &transport.Options{Last: false}); err != nil {
 		return toRPCErr(err)
 	}
 	return nil

@@ -49,7 +49,6 @@ import (
 type rpcStream struct {
 	t          transport.ServerTransport
 	s          *transport.Stream
-	p          *parser
 	codec      grpc.Codec
 	cp         grpc.Compressor
 	dc         grpc.Decompressor
@@ -96,7 +95,7 @@ func (r *rpcStream) Send(m interface{}) (err error) {
 }
 
 func (r *rpcStream) Recv(m interface{}) (err error) {
-	if err := recv(r.p, r.codec, r.s, r.dc, m, r.maxMsgSize); err != nil {
+	if err := recv(r.codec, r.s, r.dc, m, r.maxMsgSize); err != nil {
 		if err == io.EOF {
 			return err
 		}

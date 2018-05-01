@@ -250,17 +250,16 @@ func (g *grpcServer) serveStream(t transport.ServerTransport, stream *transport.
 }
 
 func (g *grpcServer) sendResponse(t transport.ServerTransport, stream *transport.Stream, msg interface{}, codec grpc.Codec, opts *transport.Options) error {
-	hd, p, err := encode(codec, msg, nil, nil, nil)
+	p, err := encode(codec, msg, nil, nil, nil)
 	if err != nil {
 		log.Fatalf("grpc: Server failed to encode response %v", err)
 	}
-	return t.Write(stream, hd, p, opts)
+	return t.Write(stream, p, opts)
 }
 
 func (g *grpcServer) processRequest(t transport.ServerTransport, stream *transport.Stream, service *service, mtype *methodType, codec grpc.Codec, ct string, ctx context.Context) (err error) {
-	p := &parser{r: stream}
 	for {
-		pf, req, err := p.recvMsg(defaultMaxMsgSize)
+		pf, req, err := recvMsg(stream, defaultMaxMsgSize)
 		if err == io.EOF {
 			// The entire stream is done (for unary RPC only).
 			return err
@@ -286,19 +285,10 @@ func (g *grpcServer) processRequest(t transport.ServerTransport, stream *transpo
 			return err
 		}
 
-		if err := checkRecvPayload(pf, stream.RecvCompress(), nil); err != nil {
-			switch err := err.(type) {
-			case *rpcError:
-				if err := t.WriteStatus(stream, status.New(err.code, err.desc)); err != nil {
-					log.Logf("grpc: Server.processUnaryRPC failed to write status %v", err)
-				}
-			default:
-				if err := t.WriteStatus(stream, status.New(codes.Internal, err.Error())); err != nil {
-					log.Logf("grpc: Server.processUnaryRPC failed to write status %v", err)
-				}
-
-			}
-			return err
+		if err := checkRecvPayload(stream.RecvCompress(), pf); err != nil {
+			// @todo - removed switch that was here as it was
+			// no longer a valid type to switch on
+			return nil
 		}
 
 		// status code/desc
@@ -422,7 +412,6 @@ func (g *grpcServer) processStream(t transport.ServerTransport, stream *transpor
 		request:    r,
 		t:          t,
 		s:          stream,
-		p:          &parser{r: stream},
 		codec:      codec,
 		maxMsgSize: defaultMaxMsgSize,
 	}

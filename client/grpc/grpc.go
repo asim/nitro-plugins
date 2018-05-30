@@ -33,6 +33,7 @@ type grpcClient struct {
 
 var (
 	errShutdown = errs.New("connection is shut down")
+	DefaultMaxReceiveMessageSize = 1024 * 1024 * 4
 )
 
 func init() {
@@ -95,7 +96,9 @@ func (g *grpcClient) call(ctx context.Context, address string, req client.Reques
 
 	var grr error
 
-	cc, err := g.pool.getConn(address, grpc.WithCodec(cf), grpc.WithTimeout(opts.DialTimeout), g.secure())
+	cc, err := g.pool.getConn(address,
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(DefaultMaxReceiveMessageSize)),
+		grpc.WithCodec(cf), grpc.WithTimeout(opts.DialTimeout), g.secure())
 	if err != nil {
 		return errors.InternalServerError("go.micro.client", fmt.Sprintf("Error sending request: %v", err))
 	}

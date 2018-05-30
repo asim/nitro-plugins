@@ -469,7 +469,8 @@ func newClient(opts ...client.Option) client.Client {
 			RequestTimeout: client.DefaultRequestTimeout,
 			DialTimeout:    transport.DefaultDialTimeout,
 		},
-		PoolTTL: client.DefaultPoolTTL,
+		PoolSize: client.DefaultPoolSize,
+		PoolTTL:  client.DefaultPoolTTL,
 	}
 
 	for _, o := range opts {

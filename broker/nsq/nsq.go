@@ -149,7 +149,24 @@ func (n *nsqBroker) Publish(topic string, message *broker.Message, opts ...broke
 	if err != nil {
 		return err
 	}
-	return p.Publish(topic, b)
+
+	if ttl, ok := message.Header["ttl"]; ok {
+
+		delay, err := time.ParseDuration(ttl)
+
+		if err != nil {
+			return p.Publish(topic, b)
+		}
+
+		if delay <= 0 {
+			return p.Publish(topic, b)
+		}
+
+		return p.DeferredPublish(topic, delay, b)
+
+	} else {
+		return p.Publish(topic, b)
+	}
 }
 
 func (n *nsqBroker) Subscribe(topic string, handler broker.Handler, opts ...broker.SubscribeOption) (broker.Subscriber, error) {

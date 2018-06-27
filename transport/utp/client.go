@@ -1,8 +1,10 @@
 package utp
 
 import (
+	"errors"
 	"time"
 
+	"github.com/micro/go-log"
 	"github.com/micro/go-micro/transport"
 )
 
@@ -26,5 +28,16 @@ func (u *utpClient) Recv(m *transport.Message) error {
 }
 
 func (u *utpClient) Close() error {
-	return u.conn.Close()
+	err1 := u.conn.Close()
+	if err1 != nil {
+		log.Log("fail to close utp connection error:", err1)
+	}
+	err2 := u.socket.Close()
+	if err2 != nil {
+		log.Log("fail to close utp socket error:", err2)
+	}
+	if err1 != nil || err2 != nil {
+		return errors.New("fail to close utp client")
+	}
+	return nil
 }

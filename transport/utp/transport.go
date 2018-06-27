@@ -2,12 +2,11 @@ package utp
 
 import (
 	"bufio"
-	"context"
 	"crypto/tls"
 	"encoding/gob"
 	"net"
 
-	"github.com/anacrolix/utp"
+	utp "github.com/anacrolix/go-libutp"
 	"github.com/micro/go-micro/transport"
 	maddr "github.com/micro/util/go/lib/addr"
 	mnet "github.com/micro/util/go/lib/net"
@@ -23,8 +22,12 @@ func (u *utpTransport) Dial(addr string, opts ...transport.DialOption) (transpor
 		opt(&dopts)
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), dopts.Timeout)
-	c, err := utp.DialContext(ctx, addr)
+	s, err := utp.NewSocket("udp", ":0")
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := s.DialTimeout(addr, dopts.Timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -44,6 +47,7 @@ func (u *utpTransport) Dial(addr string, opts ...transport.DialOption) (transpor
 	return &utpClient{
 		dialOpts: dopts,
 		conn:     c,
+		socket:   s,
 		encBuf:   encBuf,
 		enc:      gob.NewEncoder(encBuf),
 		dec:      gob.NewDecoder(c),
@@ -83,7 +87,7 @@ func (u *utpTransport) Listen(addr string, opts ...transport.ListenOption) (tran
 				}
 				config = &tls.Config{Certificates: []tls.Certificate{cert}}
 			}
-			l, err := utp.Listen(addr)
+			l, err := listen(addr)
 			if err != nil {
 				return nil, err
 			}
@@ -92,7 +96,7 @@ func (u *utpTransport) Listen(addr string, opts ...transport.ListenOption) (tran
 
 		l, err = mnet.Listen(addr, fn)
 	} else {
-		l, err = mnet.Listen(addr, utp.Listen)
+		l, err = mnet.Listen(addr, listen)
 	}
 
 	if err != nil {
@@ -104,6 +108,10 @@ func (u *utpTransport) Listen(addr string, opts ...transport.ListenOption) (tran
 		l:    l,
 		opts: options,
 	}, nil
+}
+
+func listen(addr string) (net.Listener, error) {
+	return utp.NewSocket("udp", addr)
 }
 
 func (u *utpTransport) String() string {

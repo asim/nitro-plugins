@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/anacrolix/go-libutp"
 	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/transport"
 )
@@ -24,6 +25,7 @@ type utpListener struct {
 type utpClient struct {
 	dialOpts transport.DialOptions
 	conn     net.Conn
+	socket   *utp.Socket
 	enc      *gob.Encoder
 	dec      *gob.Decoder
 	encBuf   *bufio.Writer

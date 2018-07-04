@@ -11,7 +11,7 @@ package main
 
 import (
 	"github.com/micro/micro/plugin"
-	"github.com/micro/go-plugins/micro/whitelist"
+	"github.com/saturn-sonic/go-plugins/micro/whitelist"
 )
 
 func init() {
@@ -35,7 +35,7 @@ package main
 
 import (
 	"github.com/micro/micro/api"
-	"github.com/micro/go-plugins/micro/whitelist"
+	"github.com/saturn-sonic/go-plugins/micro/whitelist"
 )
 
 func init() {

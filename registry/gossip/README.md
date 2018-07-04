@@ -8,7 +8,7 @@ via the SWIM protocol.
 Import the plugin as per usual
 
 ```go
-import _ "github.com/micro/go-plugins/registry/gossip"
+import _ "github.com/saturn-sonic/go-plugins/registry/gossip"
 ```
 
 Start with the registry flag

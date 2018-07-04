@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	pb "github.com/micro/go-plugins/transport/grpc/proto"
+	pb "github.com/saturn-sonic/go-plugins/transport/grpc/proto"
 )
 
 type grpcTransport struct {

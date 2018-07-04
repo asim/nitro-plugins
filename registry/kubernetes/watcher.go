@@ -6,10 +6,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/micro/go-log"
+	"github.com/go-log/log"
 	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-plugins/registry/kubernetes/client"
-	"github.com/micro/go-plugins/registry/kubernetes/client/watch"
+	"github.com/saturn-sonic/go-plugins/registry/kubernetes/client"
+	"github.com/saturn-sonic/go-plugins/registry/kubernetes/client/watch"
 )
 
 type k8sWatcher struct {

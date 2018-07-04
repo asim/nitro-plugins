@@ -3,9 +3,9 @@ package grpc
 import (
 	"runtime/debug"
 
-	"github.com/micro/go-log"
+	"github.com/go-log/log"
 	"github.com/micro/go-micro/transport"
-	pb "github.com/micro/go-plugins/transport/grpc/proto"
+	pb "github.com/saturn-sonic/go-plugins/transport/grpc/proto"
 )
 
 // microTransport satisfies the pb.TransportServer inteface

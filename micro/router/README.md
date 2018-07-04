@@ -26,7 +26,7 @@ package main
 
 import (
 	"github.com/micro/micro/plugin"
-	"github.com/micro/go-plugins/micro/router"
+	"github.com/saturn-sonic/go-plugins/micro/router"
 )
 
 func init() {

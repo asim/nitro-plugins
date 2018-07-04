@@ -13,7 +13,7 @@ package main
 
 import (
 	"github.com/micro/micro/plugin"
-	ip "github.com/micro/go-plugins/micro/ip_whitelist"
+	ip "github.com/saturn-sonic/go-plugins/micro/ip_whitelist"
 )
 
 func init() {
@@ -37,7 +37,7 @@ package main
 
 import (
 	"github.com/micro/micro/api"
-	ip "github.com/micro/go-plugins/micro/ip_whitelist"
+	ip "github.com/saturn-sonic/go-plugins/micro/ip_whitelist"
 )
 
 func init() {

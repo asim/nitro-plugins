@@ -12,7 +12,7 @@ package main
 import (
 	"github.com/micro/micro/plugin"
 	"github.com/aws/aws-sdk-go/service/xray"
-	"github.com/micro/go-plugins/micro/trace/awsxray"
+	"github.com/saturn-sonic/go-plugins/micro/trace/awsxray"
 )
 
 func init() {
@@ -42,7 +42,7 @@ package main
 
 import (
 	"github.com/micro/micro/api"
-	"github.com/micro/go-plugins/micro/trace/awsxray"
+	"github.com/saturn-sonic/go-plugins/micro/trace/awsxray"
 )
 
 func init() {

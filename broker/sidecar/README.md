@@ -19,7 +19,7 @@ micro sidecar
 ### Import and Flag plugin
 
 ```
-import _ "github.com/micro/go-plugins/broker/sidecar"
+import _ "github.com/saturn-sonic/go-plugins/broker/sidecar"
 ```
 
 ```

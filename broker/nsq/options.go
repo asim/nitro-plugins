@@ -9,7 +9,7 @@ import (
 type contextKeyT string
 
 var (
-	concurrentHandlerKey = contextKeyT("github.com/micro/go-plugins/broker/nsq/concurrentHandlers")
+	concurrentHandlerKey = contextKeyT("github.com/saturn-sonic/go-plugins/broker/nsq/concurrentHandlers")
 )
 
 func ConcurrentHandlers(n int) broker.SubscribeOption {

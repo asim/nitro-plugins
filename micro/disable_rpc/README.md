@@ -11,7 +11,7 @@ package main
 
 import (
 	"github.com/micro/micro/plugin"
-	rpc "github.com/micro/go-plugins/micro/disable_rpc"
+	rpc "github.com/saturn-sonic/go-plugins/micro/disable_rpc"
 )
 
 func init() {
@@ -29,7 +29,7 @@ package main
 
 import (
 	"github.com/micro/micro/api"
-	rpc "github.com/micro/go-plugins/micro/disable_rpc"
+	rpc "github.com/saturn-sonic/go-plugins/micro/disable_rpc"
 )
 
 func init() {

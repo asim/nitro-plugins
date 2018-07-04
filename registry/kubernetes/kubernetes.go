@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/micro/go-plugins/registry/kubernetes/client"
+	"github.com/saturn-sonic/go-plugins/registry/kubernetes/client"
 
 	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/registry"

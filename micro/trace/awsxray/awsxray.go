@@ -4,11 +4,11 @@ package awsxray
 import (
 	"net/http"
 
-	"github.com/asim/go-awsxray"
+	_ "github.com/asim/go-awsxray"
 	"github.com/micro/cli"
 	"github.com/micro/go-micro/client"
-	xray "github.com/micro/go-plugins/wrapper/trace/awsxray"
 	"github.com/micro/micro/plugin"
+	xray "github.com/saturn-sonic/go-plugins/wrapper/trace/awsxray"
 )
 
 type awsXRay struct {

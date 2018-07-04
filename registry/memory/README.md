@@ -7,7 +7,7 @@ In-memory registry can be used where no coordination or third party dependency i
 ### With Flag
 
 ```go
-import _ "github.com/micro/go-plugins/registry/memory"
+import _ "github.com/saturn-sonic/go-plugins/registry/memory"
 ```
 
 ```shell
@@ -19,7 +19,7 @@ go run main.go --registry=memory
 ```go
 import (
 	"github.com/micro/go-micro"
-	"github.com/micro/go-plugins/registry/memory"
+	"github.com/saturn-sonic/go-plugins/registry/memory"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 import (
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-plugins/registry/memory"
+	"github.com/saturn-sonic/go-plugins/registry/memory"
 )
 
 func main() {

@@ -4,11 +4,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path"
 
-	"github.com/micro/go-log"
 	"github.com/micro/go-plugins/registry/kubernetes/client/api"
 	"github.com/micro/go-plugins/registry/kubernetes/client/watch"
 )
@@ -63,8 +63,22 @@ func detectNamespace() (string, error) {
 
 // NewClientByHost sets up a client by host
 func NewClientByHost(host string) Kubernetes {
+	var tc *tls.Config
+
+	// if skipTlsVerify {
+	// 	tc = &tls.Config{
+	// 		InsecureSkipVerify: true,
+	// 	}
+	// } else {
+	// 	tc = &tls.Config{}
+	// }
+
+	tc = &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
 	tr := &http.Transport{
-		TLSClientConfig:    &tls.Config{},
+		TLSClientConfig:    tc,
 		DisableCompression: true,
 	}
 

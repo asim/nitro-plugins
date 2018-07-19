@@ -23,6 +23,8 @@ import (
 	"github.com/micro/grpc-go"
 	"github.com/micro/grpc-go/credentials"
 	gmetadata "github.com/micro/grpc-go/metadata"
+
+	"github.com/micro/go-log"
 )
 
 type grpcClient struct {
@@ -52,9 +54,11 @@ func (g *grpcClient) secure() grpc.DialOption {
 }
 
 func (g *grpcClient) next(request client.Request, opts client.CallOptions) (selector.Next, error) {
+	log.Logf("grpc.next")
 	// return remote address
 	if len(opts.Address) > 0 {
 		return func() (*registry.Node, error) {
+			log.Logf("grpc.next address -> %s", opts.Address)
 			return &registry.Node{
 				Address: opts.Address,
 			}, nil
@@ -62,7 +66,9 @@ func (g *grpcClient) next(request client.Request, opts client.CallOptions) (sele
 	}
 
 	// get next nodes from the selector
+	log.Logf("grpc.next selector")
 	next, err := g.opts.Selector.Select(request.Service(), opts.SelectOptions...)
+	log.Logf("grpc.next next err -> %v",err)
 	if err != nil && err == selector.ErrNotFound {
 		return nil, errors.NotFound("go.micro.client", err.Error())
 	} else if err != nil {
@@ -73,6 +79,7 @@ func (g *grpcClient) next(request client.Request, opts client.CallOptions) (sele
 }
 
 func (g *grpcClient) call(ctx context.Context, address string, req client.Request, rsp interface{}, opts client.CallOptions) error {
+	log.Logf("grpc.call")
 	header := make(map[string]string)
 	if md, ok := metadata.FromContext(ctx); ok {
 		for k, v := range md {
@@ -117,7 +124,7 @@ func (g *grpcClient) call(ctx context.Context, address string, req client.Reques
 	case <-ctx.Done():
 		grr = ctx.Err()
 	}
-
+	log.Logf("grpc.call return -> %v", grr)
 	return grr
 }
 

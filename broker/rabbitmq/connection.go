@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
+	"log"
 )
 
 var (
@@ -32,6 +33,8 @@ type rabbitMQConn struct {
 	sync.Mutex
 	connected bool
 	close     chan bool
+
+	waitConnection chan struct{}
 }
 
 func newRabbitMQConn(exchange string, urls []string) *rabbitMQConn {
@@ -47,11 +50,15 @@ func newRabbitMQConn(exchange string, urls []string) *rabbitMQConn {
 		exchange = DefaultExchange
 	}
 
-	return &rabbitMQConn{
-		exchange: exchange,
-		url:      url,
-		close:    make(chan bool),
+	ret := &rabbitMQConn{
+		exchange:       exchange,
+		url:            url,
+		close:          make(chan bool),
+		waitConnection: make(chan struct{}),
 	}
+	// its bad case of nil == waitConnection, so close it at start
+	close(ret.waitConnection)
+	return ret
 }
 
 func (r *rabbitMQConn) connect(secure bool, config *tls.Config) error {
@@ -86,6 +93,9 @@ func (r *rabbitMQConn) reconnect(secure bool, config *tls.Config) {
 			r.Lock()
 			r.connected = true
 			r.Unlock()
+			//unblock resubscribe cycle - close channel
+			//at this point channel is created and unclosed - close it without any additional checks
+			close(r.waitConnection)
 		}
 
 		connect = true
@@ -95,8 +105,11 @@ func (r *rabbitMQConn) reconnect(secure bool, config *tls.Config) {
 		// block until closed
 		select {
 		case <-notifyClose:
+			// block all resubscribe attempt - they are useless because there is no connection to rabbitmq
+			// create channel 'waitConnection' (at this point channel is nil or closed, create it without unnecessary checks)
 			r.Lock()
 			r.connected = false
+			r.waitConnection = make(chan struct{})
 			r.Unlock()
 		case <-r.close:
 			return
@@ -166,7 +179,7 @@ func (r *rabbitMQConn) tryConnect(secure bool, config *tls.Config) error {
 		return err
 	}
 
-	r.Channel.DeclareExchange(r.exchange)
+	r.Channel.DeclareDurableExchange(r.exchange)
 	r.ExchangeChannel, err = newRabbitChannel(r.Connection)
 
 	return err
@@ -186,6 +199,10 @@ func (r *rabbitMQConn) Consume(queue, key string, headers amqp.Table, autoAck, d
 
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if err=consumerChannel.channel.Qos(1000,0,false); err!= nil {
+		log.Println(err)
 	}
 
 	deliveries, err := consumerChannel.ConsumeQueue(queue, autoAck)

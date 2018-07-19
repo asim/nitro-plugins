@@ -29,6 +29,7 @@ func newRabbitChannel(conn *amqp.Connection) (*rabbitMQChannel, error) {
 	if err := rabbitCh.Connect(); err != nil {
 		return nil, err
 	}
+
 	return rabbitCh, nil
 
 }
@@ -61,6 +62,18 @@ func (r *rabbitMQChannel) DeclareExchange(exchange string) error {
 		exchange, // name
 		"topic",  // kind
 		false,    // durable
+		false,    // autoDelete
+		false,    // internal
+		false,    // noWait
+		nil,      // args
+	)
+}
+
+func (r *rabbitMQChannel) DeclareDurableExchange(exchange string) error {
+	return r.channel.ExchangeDeclare(
+		exchange, // name
+		"topic",  // kind
+		true,    // durable
 		false,    // autoDelete
 		false,    // internal
 		false,    // noWait

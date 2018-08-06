@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -9,11 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/micro/go-log"
+	"github.com/comtom/go-plugins/registry/kubernetes/client"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro/selector"
 	"github.com/micro/go-micro/selector/cache"
-	"github.com/micro/go-plugins/registry/kubernetes/client"
 	"github.com/micro/go-plugins/registry/kubernetes/client/mock"
 )
 

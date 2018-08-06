@@ -258,7 +258,7 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 	if len(host) == 0 {
 		c = client.NewClientInCluster()
 	} else {
-		c = client.NewClientByHost(host)
+		c = client.NewClientByHost(host, options.TLSConfig)
 	}
 
 	return &kregistry{

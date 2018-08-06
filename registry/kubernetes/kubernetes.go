@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/micro/go-plugins/registry/kubernetes/client"
-
 	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/registry"
+	"github.com/micro/go-plugins/registry/kubernetes/client"
 )
 
 type kregistry struct {
@@ -258,7 +257,7 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 	if len(host) == 0 {
 		c = client.NewClientInCluster()
 	} else {
-		c = client.NewClientByHost(host)
+		c = client.NewClientByHost(host, options.TLSConfig)
 	}
 
 	return &kregistry{

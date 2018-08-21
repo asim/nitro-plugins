@@ -202,18 +202,18 @@ func (g *grpcClient) newCodec(contentType string) (codec.NewCodec, error) {
 }
 
 func (g *grpcClient) Init(opts ...client.Option) error {
-	size := g.opts.PoolSize
-	ttl := g.opts.PoolTTL
+	size := g.opts.PoolOptions.Size
+	ttl := g.opts.PoolOptions.TTL
 
 	for _, o := range opts {
 		o(&g.opts)
 	}
 
 	// update pool configuration if the options changed
-	if size != g.opts.PoolSize || ttl != g.opts.PoolTTL {
+	if size != g.opts.PoolOptions.Size || ttl != g.opts.PoolOptions.TTL {
 		g.pool.Lock()
-		g.pool.size = g.opts.PoolSize
-		g.pool.ttl = int64(g.opts.PoolTTL.Seconds())
+		g.pool.size = g.opts.PoolOptions.Size
+		g.pool.ttl = int64(g.opts.PoolOptions.TTL.Seconds())
 		g.pool.Unlock()
 	}
 
@@ -467,8 +467,10 @@ func newClient(opts ...client.Option) client.Client {
 			RequestTimeout: client.DefaultRequestTimeout,
 			DialTimeout:    transport.DefaultDialTimeout,
 		},
-		PoolSize: client.DefaultPoolSize,
-		PoolTTL:  client.DefaultPoolTTL,
+		PoolOptions: client.PoolOptions{
+			Size: client.DefaultPoolSize,
+			TTL:  client.DefaultPoolTTL,
+		},
 	}
 
 	for _, o := range opts {
@@ -496,7 +498,7 @@ func newClient(opts ...client.Option) client.Client {
 	rc := &grpcClient{
 		once: sync.Once{},
 		opts: options,
-		pool: newPool(options.PoolSize, options.PoolTTL),
+		pool: newPool(options.PoolOptions.Size, options.PoolOptions.TTL),
 	}
 
 	c := client.Client(rc)

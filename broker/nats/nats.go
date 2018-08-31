@@ -109,6 +109,7 @@ func (n *nbroker) Connect() error {
 
 func (n *nbroker) Disconnect() error {
 	n.conn.Close()
+	n.conn = nil
 	return nil
 }
 

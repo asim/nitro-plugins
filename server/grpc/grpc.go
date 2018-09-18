@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	defaultMaxMsgSize  = 1024 * 1024 * 4 // use 4MB as the default message size limit
+	defaultMaxMsgSize  = 1024 * 1024 * 10 // use 10MB as the default message size limit
 	defaultContentType = "application/grpc"
 )
 
@@ -625,7 +625,9 @@ func (g *grpcServer) Register() error {
 	}
 
 	// create registry options
-	rOpts := []registry.RegisterOption{registry.RegisterTTL(config.RegisterTTL)}
+	rOpts := []registry.RegisterOption{
+		registry.RegisterTTL(config.RegisterTTL),
+	}
 
 	if err := config.Registry.Register(service, rOpts...); err != nil {
 		return err

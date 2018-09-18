@@ -26,6 +26,10 @@ import (
 	gmetadata "github.com/micro/grpc-go/metadata"
 )
 
+const (
+	defaultMaxMsgSize = 1024 * 1024 * 10 // use 10MB as the default message size limit
+)
+
 type grpcClient struct {
 	once sync.Once
 	opts client.Options
@@ -96,7 +100,7 @@ func (g *grpcClient) call(ctx context.Context, address string, req client.Reques
 
 	var grr error
 
-	cc, err := g.pool.getConn(address, grpc.WithCodec(cf), grpc.WithTimeout(opts.DialTimeout), g.secure())
+	cc, err := g.pool.getConn(address, grpc.WithCodec(cf), grpc.WithTimeout(opts.DialTimeout), g.secure(), grpc.WithMaxMsgSize(defaultMaxMsgSize))
 	if err != nil {
 		return errors.InternalServerError("go.micro.client", fmt.Sprintf("Error sending request: %v", err))
 	}

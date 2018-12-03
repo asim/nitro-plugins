@@ -169,9 +169,14 @@ func (b *pubsubBroker) Publish(topic string, msg *broker.Message, opts ...broker
 
 // Subscribe registers a subscription to the given topic against the google pubsub api
 func (b *pubsubBroker) Subscribe(topic string, h broker.Handler, opts ...broker.SubscribeOption) (broker.Subscriber, error) {
+	queueName := "q-" + uuid.New().String()
+	if subscriptionName, ok := b.options.Context.Value(subscriptionName{}).(string); ok {
+		queueName = subscriptionName
+	}
+
 	options := broker.SubscribeOptions{
 		AutoAck: true,
-		Queue:   "q-" + uuid.New().String(),
+		Queue:   queueName,
 		Context: b.options.Context,
 	}
 

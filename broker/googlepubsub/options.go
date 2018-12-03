@@ -20,6 +20,8 @@ type createSubscription struct{}
 
 type deleteSubscription struct{}
 
+type subscriptionName struct{}
+
 // ClientOption is a broker Option which allows google pubsub client options to be
 // set for the client
 func ClientOption(c ...option.ClientOption) broker.Option {
@@ -86,3 +88,16 @@ func MaxExtension(d time.Duration) broker.SubscribeOption {
 		o.Context = context.WithValue(o.Context, maxExtensionKey{}, d)
 	}
 }
+
+// SubscriptionName is the name of existing subscription. This could be used
+// when user wants to use the subscription they've made before.
+func SubscriptionName(name string) broker.SubscribeOption {
+	return func(o *broker.SubscribeOptions) {
+		if o.Context == nil {
+			o.Context = context.Background()
+		}
+
+		o.Context = context.WithValue(o.Context, subscriptionName{}, name)
+	}
+}
+

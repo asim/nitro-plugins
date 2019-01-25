@@ -167,6 +167,12 @@ func (r *rbroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 }
 
 func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker.SubscribeOption) (broker.Subscriber, error) {
+	var successAutoAck bool
+
+	if r.conn == nil {
+		return nil, errors.New("not connected")
+	}
+
 	opt := broker.SubscribeOptions{
 		AutoAck: true,
 	}
@@ -175,25 +181,30 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		o(&opt)
 	}
 
-	requeueOnError := false
-	if opt.Context != nil {
-		requeueOnError, _ = opt.Context.Value(requeueOnErrorKey{}).(bool)
+	// Make sure context is setup
+	if opt.Context == nil {
+		opt.Context = context.Background()
 	}
+
+	ctx := opt.Context
+	if subscribeContext, ok := ctx.Value(subscribeContextKey{}).(context.Context); ok && subscribeContext != nil {
+		ctx = subscribeContext
+	}
+
+	requeueOnError := false
+	requeueOnError, _ = ctx.Value(requeueOnErrorKey{}).(bool)
 
 	durableQueue := false
-	if opt.Context != nil {
-		durableQueue, _ = opt.Context.Value(durableQueueKey{}).(bool)
-	}
+	durableQueue, _ = ctx.Value(durableQueueKey{}).(bool)
 
 	var headers map[string]interface{}
-	if opt.Context != nil {
-		if h, ok := opt.Context.Value(headersKey{}).(map[string]interface{}); ok {
-			headers = h
-		}
+	if h, ok := ctx.Value(headersKey{}).(map[string]interface{}); ok {
+		headers = h
 	}
 
-	if r.conn == nil {
-		return nil, errors.New("connection is nil")
+	if bval, ok := ctx.Value(successAutoAckKey{}).(bool); ok && bval {
+		opt.AutoAck = false
+		successAutoAck = true
 	}
 
 	fn := func(msg amqp.Delivery) {
@@ -205,7 +216,10 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			Header: header,
 			Body:   msg.Body,
 		}
-		if err := handler(&publication{d: msg, m: m, t: msg.RoutingKey}); err != nil && !opt.AutoAck {
+		err := handler(&publication{d: msg, m: m, t: msg.RoutingKey})
+		if err == nil && successAutoAck && !opt.AutoAck {
+			msg.Ack(false)
+		} else if err != nil && !opt.AutoAck {
 			msg.Nack(false, requeueOnError)
 		}
 	}

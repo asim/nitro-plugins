@@ -17,19 +17,16 @@ type brokerConfigKey struct{}
 type clusterConfigKey struct{}
 
 func BrokerConfig(c *sarama.Config) broker.Option {
-	return func(o *broker.Options) {
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		o.Context = context.WithValue(o.Context, brokerConfigKey{}, c)
-	}
+	return setBrokerOption(brokerConfigKey{}, c)
 }
 
 func ClusterConfig(c *sc.Config) broker.Option {
-	return func(o *broker.Options) {
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		o.Context = context.WithValue(o.Context, clusterConfigKey{}, c)
-	}
+	return setBrokerOption(clusterConfigKey{}, c)
+}
+
+type subscribeContextKey struct{}
+
+// SubscribeContext set the context for broker.SubscribeOption
+func SubscribeContext(ctx context.Context) broker.SubscribeOption {
+	return setSubscribeOption(subscribeContextKey{}, ctx)
 }

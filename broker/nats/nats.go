@@ -3,13 +3,14 @@ package nats
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"sync"
 
 	"github.com/micro/go-micro/broker"
 	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/codec/json"
-	"github.com/nats-io/go-nats"
+	nats "github.com/nats-io/go-nats"
 )
 
 type nbroker struct {
@@ -144,6 +145,10 @@ func (n *nbroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 }
 
 func (n *nbroker) Subscribe(topic string, handler broker.Handler, opts ...broker.SubscribeOption) (broker.Subscriber, error) {
+	if n.conn == nil {
+		return nil, errors.New("not connected")
+	}
+
 	opt := broker.SubscribeOptions{
 		AutoAck: true,
 	}

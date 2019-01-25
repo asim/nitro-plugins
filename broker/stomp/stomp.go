@@ -154,8 +154,10 @@ func (r *rbroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 }
 
 func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker.SubscribeOption) (broker.Subscriber, error) {
+	var successAutoAck bool
+
 	if r.stompConn == nil {
-		return nil, errors.New("Not connected")
+		return nil, errors.New("not connected")
 	}
 
 	// Set options
@@ -171,14 +173,24 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		bOpt.Context = context.Background()
 	}
 
-	if durableQueue, ok := bOpt.Context.Value(durableQueueKey{}).(bool); ok && durableQueue {
+	ctx := bOpt.Context
+	if subscribeContext, ok := ctx.Value(subscribeContextKey{}).(context.Context); ok && subscribeContext != nil {
+		ctx = subscribeContext
+	}
+
+	if durableQueue, ok := ctx.Value(durableQueueKey{}).(bool); ok && durableQueue {
 		stompOpt = append(stompOpt, stomp.SubscribeOpt.Header("persistent", "true"))
 	}
 
-	if headers, ok := bOpt.Context.Value(subscribeHeaderKey{}).(map[string]string); ok && len(headers) > 0 {
+	if headers, ok := ctx.Value(subscribeHeaderKey{}).(map[string]string); ok && len(headers) > 0 {
 		for k, v := range headers {
 			stompOpt = append(stompOpt, stomp.SubscribeOpt.Header(k, v))
 		}
+	}
+
+	if bval, ok := ctx.Value(successAutoAckKey{}).(bool); ok && bval {
+		bOpt.AutoAck = false
+		successAutoAck = true
 	}
 
 	var ackMode stomp.AckMode
@@ -204,7 +216,10 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 					Body:   msg.Body,
 				}
 				// Handle the publication
-				handler(&publication{msg: msg, m: m, topic: topic, broker: r})
+				err := handler(&publication{msg: msg, m: m, topic: topic, broker: r})
+				if err == nil && !bOpt.AutoAck && successAutoAck {
+					msg.Conn.Ack(msg)
+				}
 			}(msg)
 		}
 	}()

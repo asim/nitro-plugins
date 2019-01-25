@@ -1,6 +1,7 @@
 package stomp
 
 import (
+	"context"
 	"time"
 
 	"github.com/micro/go-micro/broker"
@@ -9,6 +10,20 @@ import (
 // SubscribeHeaders sets headers for subscriptions
 func SubscribeHeaders(h map[string]string) broker.SubscribeOption {
 	return setSubscribeOption(subscribeHeaderKey{}, h)
+}
+
+type subscribeContextKey struct{}
+
+// SubscribeContext set the context for broker.SubscribeOption
+func SubscribeContext(ctx context.Context) broker.SubscribeOption {
+	return setSubscribeOption(subscribeContextKey{}, ctx)
+}
+
+type successAutoAckKey struct{}
+
+// SuccessAutoAck allow to AutoAck messages when handler returns without error
+func SuccessAutoAck() broker.SubscribeOption {
+	return setSubscribeOption(successAutoAckKey{}, true)
 }
 
 // Durable sets a durable subscription

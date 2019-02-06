@@ -246,7 +246,9 @@ func (g *grpcServer) processRequest(stream grpc.ServerStream, service *service, 
 
 		// execute the handler
 		if appErr := fn(ctx, r, replyv.Interface()); appErr != nil {
-			if err, ok := appErr.(*rpcError); ok {
+			if s, ok := status.FromError(appErr); ok {
++				return s.Err()
++			} else if err, ok := appErr.(*rpcError); ok {
 				statusCode = err.code
 				statusDesc = err.desc
 			} else if err, ok := appErr.(*errors.Error); ok {
@@ -302,7 +304,9 @@ func (g *grpcServer) processStream(stream grpc.ServerStream, service *service, m
 
 	appErr := fn(ctx, r, ss)
 	if appErr != nil {
-		if err, ok := appErr.(*rpcError); ok {
+		if s, ok := status.FromError(appErr); ok {
++			return s.Err()
++		} else if err, ok := appErr.(*rpcError); ok {
 			statusCode = err.code
 			statusDesc = err.desc
 		} else if err, ok := appErr.(*errors.Error); ok {

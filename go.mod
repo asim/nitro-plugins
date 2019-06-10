@@ -142,4 +142,5 @@ replace (
 	github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
 	github.com/testcontainers/testcontainer-go => github.com/testcontainers/testcontainers-go v0.0.0-20181115231424-8e868ca12c0f
 	github.com/ugorji/go/codec => github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8
+	github.com/nats-io/go-nats-streaming v0.4.5 => github.com/nats-io/go-nats-streaming v0.4.4
 )

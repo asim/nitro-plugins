@@ -15,7 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/micro/go-micro/broker"
-	"github.com/micro/go-micro/config/cmd"
+	"github.com/micro/go-micro/cmd"
 	merr "github.com/micro/go-micro/errors"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro/registry/cache"
@@ -23,9 +23,10 @@ import (
 	"github.com/micro/go-micro/util/log"
 	mnet "github.com/micro/go-micro/util/net"
 	mls "github.com/micro/go-micro/util/tls"
-	proto "github.com/micro/go-plugins/broker/grpc/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	proto "github.com/micro/go-plugins/broker/grpc/proto"
 )
 
 // grpcBroker is a point to point async broker

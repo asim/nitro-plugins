@@ -13,9 +13,9 @@ import (
 
 	"github.com/micro/go-micro/broker"
 	"github.com/micro/go-micro/client"
-	"github.com/micro/go-micro/config/cmd"
+	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/client/selector"
+	"github.com/micro/go-micro/selector"
 	"github.com/micro/go-micro/server"
 	"github.com/micro/go-micro/transport"
 	mp "github.com/micro/micro/plugin"

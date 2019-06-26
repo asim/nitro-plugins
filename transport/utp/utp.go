@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/micro/go-micro/config/cmd"
+	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/transport"
 )
 

@@ -44,6 +44,8 @@ func (wr *bodyWatcher) stream() {
 	}()
 
 	go func() {
+		// stop the watcher
+		defer wr.Stop()
 		for {
 			// read a line
 			b, err := reader.ReadBytes('\n')
@@ -63,9 +65,6 @@ func (wr *bodyWatcher) stream() {
 			}
 			wr.results <- event
 		}
-
-		// stop the watcher
-		wr.Stop()
 	}()
 }
 

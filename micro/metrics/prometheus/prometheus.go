@@ -4,7 +4,7 @@ package prometheus
 import (
 	"net/http"
 
-	p "github.com/prometheus/client_golang/prometheus"
+	p "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Metrics struct{}

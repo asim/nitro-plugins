@@ -2,16 +2,16 @@
 package rabbitmq
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"sync"
 	"time"
 
-	"errors"
 	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 
-	"github.com/micro/go-micro/config/cmd"
+	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/transport"
 )
 
@@ -330,8 +330,6 @@ func (r *rmqtportListener) accept(fn func(transport.Socket)) (bool, error) {
 			sock.Unlock()
 		}
 	}
-
-	return false, nil
 }
 
 func (r *rmqtport) putReq(id string) chan amqp.Delivery {

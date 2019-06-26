@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/micro/go-micro/broker"
-	"github.com/micro/go-micro/config/cmd"
+	"github.com/micro/go-micro/cmd"
 	"github.com/micro/go-micro/codec/json"
 	log "github.com/micro/go-micro/util/log"
 	stan "github.com/nats-io/stan.go"
@@ -182,8 +182,6 @@ func (n *stanBroker) connect() error {
 			log.Logf("[stan]: failed to connect %v: %v\n", n.addrs, err)
 		}
 	}
-
-	return nil
 }
 
 func (n *stanBroker) Connect() error {

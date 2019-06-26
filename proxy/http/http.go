@@ -192,8 +192,6 @@ func (p *Router) ServeRequest(ctx context.Context, req server.Request, rsp serve
 			return errors.InternalServerError(req.Service(), err.Error())
 		}
 	}
-
-	return nil
 }
 
 // NewSingleHostRouter returns a router which sends requests a single http backend

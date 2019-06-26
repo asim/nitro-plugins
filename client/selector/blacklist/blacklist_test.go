@@ -6,14 +6,14 @@ import (
 
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro/registry/memory"
-	"github.com/micro/go-micro/client/selector"
+	"github.com/micro/go-micro/selector"
 )
 
 func TestDefaultSelector(t *testing.T) {
 	counts := map[string]int{}
 
 	r := memory.NewRegistry()
-	r.(*memory.Registry).Setup()
+	r.(*memory.Registry).Init()
 	rs := newSelector(selector.Registry(r))
 
 	next, err := rs.Select("foo")

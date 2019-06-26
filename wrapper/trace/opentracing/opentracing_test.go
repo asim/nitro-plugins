@@ -5,16 +5,15 @@ import (
 	"testing"
 
 	"github.com/micro/go-micro/client"
+	cli "github.com/micro/go-micro/client/grpc"
 	microerr "github.com/micro/go-micro/errors"
 	"github.com/micro/go-micro/registry/memory"
-	"github.com/micro/go-micro/client/selector"
+	"github.com/micro/go-micro/selector"
 	"github.com/micro/go-micro/server"
-	opentracing "github.com/opentracing/opentracing-go"
+	srv "github.com/micro/go-micro/server/grpc"
+	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/stretchr/testify/assert"
-
-	cli "github.com/micro/go-plugins/client/grpc"
-	srv "github.com/micro/go-plugins/server/grpc"
 )
 
 type Test interface {

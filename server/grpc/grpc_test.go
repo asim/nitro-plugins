@@ -15,7 +15,7 @@ import (
 type sayServer struct{}
 
 // SayHello implements helloworld.GreeterServer
-func (s *sayServer) Hello(ctx context.Context, req *pb.Request, rsp *pb.Response) error {
+func (s *sayServer) Call(ctx context.Context, req *pb.Request, rsp *pb.Response) error {
 	rsp.Msg = "Hello " + req.Name
 	return nil
 }
@@ -27,7 +27,7 @@ func TestGRPCServer(t *testing.T) {
 		server.Registry(r),
 	)
 
-	pb.RegisterSayHandler(s, &sayServer{})
+	pb.RegisterTestHandler(s, &sayServer{})
 
 	if err := s.Start(); err != nil {
 		t.Fatalf("failed to start: %v", err)

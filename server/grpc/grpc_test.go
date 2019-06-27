@@ -8,7 +8,7 @@ import (
 	"github.com/micro/go-micro/server"
 	"google.golang.org/grpc"
 
-	pb "github.com/micro/examples/greeter/srv/proto/hello"
+	pb "github.com/micro/go-micro/server/grpc/proto"
 )
 
 // server is used to implement helloworld.GreeterServer.

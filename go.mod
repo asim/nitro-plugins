@@ -52,7 +52,7 @@ require (
 	github.com/json-iterator/go v1.1.6
 	github.com/juju/ratelimit v1.0.1
 	github.com/micro/cli v0.2.0
-	github.com/micro/go-micro v1.7.1-0.20190627060245-4bee5c1b2b73
+	github.com/micro/go-micro v1.7.1-0.20190621141408-6db720b197be
 	github.com/micro/micro v1.7.0
 	github.com/minio/highwayhash v1.0.0
 	github.com/mitchellh/hashstructure v1.0.0

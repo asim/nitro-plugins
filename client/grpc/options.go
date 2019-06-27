@@ -2,73 +2,49 @@
 package grpc
 
 import (
-	"context"
 	"crypto/tls"
 
 	"github.com/micro/go-micro/client"
+	"github.com/micro/go-micro/client/grpc"
 	"google.golang.org/grpc/encoding"
 )
 
 var (
 	// DefaultMaxRecvMsgSize maximum message that client can receive
 	// (4 MB).
+	// Deprecated: use `github.com/micro/go-micro/client/grpc` instead
 	DefaultMaxRecvMsgSize = 1024 * 1024 * 4
 
 	// DefaultMaxSendMsgSize maximum message that client can send
 	// (4 MB).
+	// Deprecated: use `github.com/micro/go-micro/client/grpc` instead
 	DefaultMaxSendMsgSize = 1024 * 1024 * 4
 )
 
-type codecsKey struct{}
-type tlsAuth struct{}
-type maxRecvMsgSizeKey struct{}
-type maxSendMsgSizeKey struct{}
-
 // gRPC Codec to be used to encode/decode requests for a given content type
+// Deprecated: use `github.com/micro/go-micro/client/grpc` instead
 func Codec(contentType string, c encoding.Codec) client.Option {
-	return func(o *client.Options) {
-		codecs := make(map[string]encoding.Codec)
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		if v := o.Context.Value(codecsKey{}); v != nil {
-			codecs = v.(map[string]encoding.Codec)
-		}
-		codecs[contentType] = c
-		o.Context = context.WithValue(o.Context, codecsKey{}, codecs)
-	}
+	return grpc.Codec(contentType, c)
 }
 
 // AuthTLS should be used to setup a secure authentication using TLS
+// Deprecated: use `github.com/micro/go-micro/client/grpc` instead
 func AuthTLS(t *tls.Config) client.Option {
-	return func(o *client.Options) {
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		o.Context = context.WithValue(o.Context, tlsAuth{}, t)
-	}
+	return grpc.AuthTLS(t)
 }
 
 //
 // MaxRecvMsgSize set the maximum size of message that client can receive.
 //
+// Deprecated: use `github.com/micro/go-micro/client/grpc` instead
 func MaxRecvMsgSize(s int) client.Option {
-	return func(o *client.Options) {
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		o.Context = context.WithValue(o.Context, maxRecvMsgSizeKey{}, s)
-	}
+	return grpc.MaxRecvMsgSize(s)
 }
 
 //
 // MaxSendMsgSize set the maximum size of message that client can send.
 //
+// Deprecated: use `github.com/micro/go-micro/client/grpc` instead
 func MaxSendMsgSize(s int) client.Option {
-	return func(o *client.Options) {
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		o.Context = context.WithValue(o.Context, maxSendMsgSizeKey{}, s)
-	}
+	return grpc.MaxSendMsgSize(s)
 }

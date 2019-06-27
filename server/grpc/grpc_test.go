@@ -50,7 +50,7 @@ func TestGRPCServer(t *testing.T) {
 		t.Fatalf("failed to dial server: %v", err)
 	}
 
-	testMethods := []string{"/helloworld.Say/Hello", "/greeter.helloworld.Say/Hello"}
+	testMethods := []string{"/test.Test/Call", "/go.micro.test.Test/Call"}
 
 	for _, method := range testMethods {
 		rsp := pb.Response{}

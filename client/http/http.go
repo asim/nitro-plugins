@@ -38,7 +38,7 @@ func (h *httpClient) next(request client.Request, opts client.CallOptions) (sele
 	if len(opts.Address) > 0 {
 		return func() (*registry.Node, error) {
 			return &registry.Node{
-				Address: opts.Address,
+				Address: opts.Address[0],
 			}, nil
 		}, nil
 	}

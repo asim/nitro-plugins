@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/mocktracer"
 
-	cli "github.com/micro/go-plugins/client/grpc"
-	srv "github.com/micro/go-plugins/server/grpc"
+	cli "github.com/micro/go-micro/client"
+	srv "github.com/micro/go-micro/server"
 )
 
 type Test interface {

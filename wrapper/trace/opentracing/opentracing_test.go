@@ -13,8 +13,8 @@ import (
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/stretchr/testify/assert"
 
-	cli "github.com/micro/go-plugins/client/grpc"
-	srv "github.com/micro/go-plugins/server/grpc"
+	cli "github.com/micro/go-micro/client"
+	srv "github.com/micro/go-micro/server"
 )
 
 type Test interface {

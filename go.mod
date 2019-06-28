@@ -49,7 +49,6 @@ require (
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/hudl/fargo v1.2.0
 	github.com/jonboulle/clockwork v0.1.0 // indirect
-	github.com/json-iterator/go v1.1.6
 	github.com/juju/ratelimit v1.0.1
 	github.com/micro/cli v0.2.0
 	github.com/micro/go-micro v1.7.1-0.20190627135301-d8e998ad85fe
@@ -112,4 +111,27 @@ require (
 	k8s.io/klog v0.3.3 // indirect
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
+)
+
+exclude (
+	github.com/Sirupsen/logrus v1.1.0
+	github.com/Sirupsen/logrus v1.1.1
+	github.com/Sirupsen/logrus v1.2.0
+	github.com/Sirupsen/logrus v1.3.0
+	github.com/Sirupsen/logrus v1.4.0
+	github.com/Sirupsen/logrus v1.4.1
+	github.com/Sirupsen/logrus v1.4.2
+	sourcegraph.com/sourcegraph/go-diff v0.5.1
+)
+
+replace (
+	github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
+	github.com/hashicorp/vault/api => github.com/hashicorp/vault/sdk v1.0.2
+	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.1.8
+	github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.4
+	github.com/testcontainers/testcontainer-go => github.com/testcontainers/testcontainers-go v0.0.0-20181115231424-8e868ca12c0f
+	github.com/ugorji/go/codec => github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8
+	k8s.io/api => k8s.io/api v0.0.0-20190409021203-6e4e0e4f393b
+	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
+	k8s.io/client-go => k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 )

@@ -52,7 +52,8 @@ require (
 	github.com/juju/ratelimit v1.0.1
 	github.com/micro/cli v0.2.0
 	github.com/micro/go-micro v1.7.1-0.20190627135301-d8e998ad85fe
-	github.com/micro/micro v1.7.0
+	github.com/micro/mdns v0.1.1-0.20190624125042-790ba6222fe3 // indirect
+	github.com/micro/micro v1.7.1-0.20190627121529-410a2eba67f1
 	github.com/minio/highwayhash v1.0.0
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/nats-io/jwt v0.2.8 // indirect
@@ -95,7 +96,7 @@ require (
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
 	golang.org/x/text v0.3.2
 	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522 // indirect
-	google.golang.org/api v0.7.0
+	google.golang.org/api v0.6.0
 	google.golang.org/genproto v0.0.0-20190626174449-989357319d63
 	google.golang.org/grpc v1.21.1
 	gopkg.in/DataDog/dd-trace-go.v1 v1.15.0
@@ -129,7 +130,7 @@ replace (
 	github.com/hashicorp/vault/api => github.com/hashicorp/vault/sdk v1.0.2
 	github.com/hashicorp/vault/sdk => github.com/hashicorp/vault/sdk v0.1.8
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.4
-	github.com/testcontainers/testcontainer-go => github.com/testcontainers/testcontainers-go v0.0.0-20181115231424-8e868ca12c0f
+	github.com/testcontainers/testcontainer-go => github.com/testcontainers/testcontainers-go v0.4.0
 	github.com/ugorji/go/codec => github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8
 	k8s.io/api => k8s.io/api v0.0.0-20190409021203-6e4e0e4f393b
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d

@@ -29,14 +29,13 @@ func StartSpanFromContext(ctx context.Context, tracer opentracing.Tracer, name s
 	// copy the metadata to prevent race
 	md = metadata.Copy(md)
 
-	// find trace in go-micro metadata
-	if spanCtx, err := tracer.Extract(opentracing.TextMap, opentracing.TextMapCarrier(md)); err == nil {
-		opts = append(opts, opentracing.ChildOf(spanCtx))
-	}
-
-	// find span context in opentracing library
+	// Find parent span.
+	// First try to get span within current service boundary.
+	// If there doesn't exist, try to get it from go-micro metadata(which is cross boundary)
 	if parentSpan := opentracing.SpanFromContext(ctx); parentSpan != nil {
 		opts = append(opts, opentracing.ChildOf(parentSpan.Context()))
+	} else if spanCtx, err := tracer.Extract(opentracing.TextMap, opentracing.TextMapCarrier(md)); err == nil {
+		opts = append(opts, opentracing.ChildOf(spanCtx))
 	}
 
 	sp := tracer.StartSpan(name, opts...)

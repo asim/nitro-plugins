@@ -58,7 +58,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/nats-io/jwt v0.2.8 // indirect
 	github.com/nats-io/nats-streaming-server v0.15.1 // indirect
-	github.com/nats-io/nats.go v1.8.2-0.20190607221125-9f4d16fe7c2d
+	github.com/nats-io/nats.go v1.8.1
 	github.com/nats-io/stan.go v0.5.0
 	github.com/nsqio/go-nsq v1.0.7
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7

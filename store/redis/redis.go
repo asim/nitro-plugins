@@ -36,8 +36,14 @@ func (r *rkv) Read(key string) (*store.Record, error) {
 	}, nil
 }
 
-func (r *rkv) Delete(key string) error {
-	return r.Client.Del(key).Err()
+func (r *rkv) Delete(keys ...string) error {
+	var err error
+	for _, key := range keys {
+		if err = r.Client.Del(key).Err(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *rkv) Write(record *store.Record) error {

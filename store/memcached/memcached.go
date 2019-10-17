@@ -39,8 +39,14 @@ func (m *mkv) Read(key string) (*store.Record, error) {
 	}, nil
 }
 
-func (m *mkv) Delete(key string) error {
-	return m.Client.Delete(key)
+func (m *mkv) Delete(keys ...string) error {
+	var err error
+	for _, key := range keys {
+		if err = m.Client.Delete(key); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *mkv) Write(record *store.Record) error {

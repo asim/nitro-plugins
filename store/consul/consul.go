@@ -31,9 +31,14 @@ func (c *ckv) Read(key string) (*store.Record, error) {
 	}, nil
 }
 
-func (c *ckv) Delete(key string) error {
-	_, err := c.client.KV().Delete(key, nil)
-	return err
+func (c *ckv) Delete(keys ...string) error {
+	var err error
+	for _, key := range keys {
+		if _, err = c.client.KV().Delete(key, nil); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *ckv) Write(record *store.Record) error {

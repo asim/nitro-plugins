@@ -429,11 +429,11 @@ func TestWatcher(t *testing.T) {
 	c := selector.NewSelector(selector.Registry(r))
 
 	// wait for watcher to get setup
-	time.Sleep(time.Millisecond)
+	time.Sleep(time.Millisecond * 100)
 
 	// check that service is blank
-	if _, err := c.Select("foo.service"); err != registry.ErrNotFound {
-		log.Fatal("expected registry.ErrNotFound")
+	if _, err := c.Select("foo.service"); err != selector.ErrNotFound {
+		log.Fatal("expected selector.ErrNotFound")
 	}
 
 	// setup svc
@@ -481,8 +481,8 @@ func TestWatcher(t *testing.T) {
 	teardownRegistry()
 	time.Sleep(time.Millisecond * 100)
 
-	if _, err := c.Select("foo.service"); err != registry.ErrNotFound {
-		log.Fatal("expected registry.ErrNotFound")
+	if _, err := c.Select("foo.service"); err != selector.ErrNotFound {
+		log.Fatal("expected selector.ErrNotFound")
 	}
 
 	out := make(chan bool)

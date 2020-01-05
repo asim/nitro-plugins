@@ -48,9 +48,9 @@ func Exchange(e string) broker.Option {
 }
 
 // Provide a function to change default exchange name
-func ChangeDefaultExchangeName(default_exchange_name string) {
+func ChangeDefaultExchangeName(defaultExchangeName string) {
 	DefaultExchange = exchange{
-		name: default_exchange_name,
+		name: defaultExchangeName,
 	}
 }
 

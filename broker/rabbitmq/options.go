@@ -47,6 +47,13 @@ func Exchange(e string) broker.Option {
 	return setBrokerOption(exchangeKey{}, e)
 }
 
+// Provide a function to change default exchange name
+func ChangeDefaultExchangeName(default_exchange_name string) {
+	DefaultExchange = exchange{
+		name: default_exchange_name,
+	}
+}
+
 // PrefetchCount ...
 func PrefetchCount(c int) broker.Option {
 	return setBrokerOption(prefetchCountKey{}, c)

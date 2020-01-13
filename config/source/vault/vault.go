@@ -52,6 +52,10 @@ func (c *vault) Read() (*source.ChangeSet, error) {
 	//return nil, nil
 }
 
+func (c *vault) Write(cs *source.ChangeSet) error {
+	return nil
+}
+
 func (c *vault) String() string {
 	return "vault"
 }

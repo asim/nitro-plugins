@@ -10,18 +10,17 @@ import (
 	"time"
 
 	mc "github.com/bradfitz/gomemcache/memcache"
-	"github.com/micro/go-micro/config/options"
 	"github.com/micro/go-micro/store"
 )
 
 type mkv struct {
-	options.Options
-	Server *mc.ServerList
-	Client *mc.Client
+	options store.Options
+	Server  *mc.ServerList
+	Client  *mc.Client
 }
 
 func (m *mkv) Read(keys ...string) ([]*store.Record, error) {
-	var records []*store.Record
+	records := make([]*store.Record, 0, len(keys))
 
 	for _, key := range keys {
 		keyval, err := m.Client.Get(key)
@@ -179,14 +178,13 @@ func (m *mkv) String() string {
 	return "memcached"
 }
 
-func NewStore(opts ...options.Option) store.Store {
-	options := options.NewOptions(opts...)
-
-	var nodes []string
-
-	if n, ok := options.Values().Get("store.nodes"); ok {
-		nodes = n.([]string)
+func NewStore(opts ...store.Option) store.Store {
+	var options store.Options
+	for _, o := range opts {
+		o(&options)
 	}
+
+	nodes := options.Nodes
 
 	if len(nodes) == 0 {
 		nodes = []string{"127.0.0.1:11211"}
@@ -196,7 +194,7 @@ func NewStore(opts ...options.Option) store.Store {
 	ss.SetServers(nodes...)
 
 	return &mkv{
-		Options: options,
+		options: options,
 		Server:  ss,
 		Client:  mc.New(nodes...),
 	}

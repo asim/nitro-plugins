@@ -69,8 +69,8 @@ func (s *sidecar) Init(opts ...broker.Option) error {
 	for _, o := range opts {
 		o(&s.opts)
 	}
-	var addrs []string
 
+	addrs := make([]string, 0, len(s.opts.Addrs))
 	for _, addr := range s.opts.Addrs {
 		if len(addr) == 0 {
 			continue

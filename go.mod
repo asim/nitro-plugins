@@ -16,8 +16,10 @@ replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.0
 
 require (
 	cloud.google.com/go/pubsub v1.0.1
+	cuelang.org/go v0.0.14
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/Shopify/sarama v1.24.1
+	github.com/VictoriaMetrics/metrics v1.9.2
 	github.com/abbot/go-http-auth v0.4.1-0.20181019201920-860ed7f246ff
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/anacrolix/sync v0.2.0 // indirect
@@ -29,7 +31,10 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/clbanning/x2j v0.0.0-20191024224557-825249438eec // indirect
 	github.com/eclipse/paho.mqtt.golang v1.2.0
+	github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727 // indirect
 	github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8 // indirect
+	github.com/garyburd/redigo v1.6.0 // indirect
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-log/log v0.1.0
 	github.com/go-redsync/redsync v1.3.1
 	github.com/go-stomp/stomp v2.0.3+incompatible
@@ -43,11 +48,13 @@ require (
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/hudl/fargo v1.3.0
 	github.com/juju/ratelimit v1.0.1
+	github.com/markbates/pkger v0.12.4
 	github.com/micro/cli v0.2.0
-	github.com/micro/go-micro v1.16.0
-	github.com/micro/micro v1.16.0
+	github.com/micro/go-micro v1.18.1-0.20191216151820-1ea6390eaedd
+	github.com/micro/micro v1.18.1-0.20191216152715-bc3ebd75c9ff
 	github.com/minio/highwayhash v1.0.0
 	github.com/mitchellh/hashstructure v1.0.0
+	github.com/nats-io/nats-streaming-server v0.16.2 // indirect
 	github.com/nats-io/nats.go v1.9.1
 	github.com/nats-io/stan.go v0.5.0
 	github.com/nsqio/go-nsq v1.0.7
@@ -67,8 +74,8 @@ require (
 	go.uber.org/ratelimit v0.1.0
 	gocloud.dev v0.17.0
 	gocloud.dev/pubsub/rabbitpubsub v0.17.0
-	golang.org/x/net v0.0.0-20191109021931-daa7c04131f5
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
+	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
 	golang.org/x/text v0.3.2
 	google.golang.org/api v0.13.0
 	google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a

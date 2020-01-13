@@ -1,18 +1,17 @@
 package redis
 
 import (
-	"github.com/micro/go-micro/config/options"
 	"github.com/micro/go-micro/store"
 	redis "gopkg.in/redis.v3"
 )
 
 type rkv struct {
-	options.Options
-	Client *redis.Client
+	options store.Options
+	Client  *redis.Client
 }
 
 func (r *rkv) Read(keys ...string) ([]*store.Record, error) {
-	var records []*store.Record
+	records := make([]*store.Record, 0, len(keys))
 
 	for _, key := range keys {
 		val, err := r.Client.Get(key).Bytes()
@@ -69,7 +68,8 @@ func (r *rkv) List() ([]*store.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	var vals []*store.Record
+
+	vals := make([]*store.Record, 0, len(keys))
 	for _, k := range keys {
 		i, err := r.Read(k)
 		if err != nil {
@@ -84,21 +84,20 @@ func (r *rkv) String() string {
 	return "redis"
 }
 
-func NewStore(opts ...options.Option) store.Store {
-	options := options.NewOptions(opts...)
-
-	var nodes []string
-
-	if n, ok := options.Values().Get("store.nodes"); ok {
-		nodes = n.([]string)
+func NewStore(opts ...store.Option) store.Store {
+	var options store.Options
+	for _, o := range opts {
+		o(&options)
 	}
+
+	nodes := options.Nodes
 
 	if len(nodes) == 0 {
 		nodes = []string{"127.0.0.1:6379"}
 	}
 
 	return &rkv{
-		Options: options,
+		options: options,
 		Client: redis.NewClient(&redis.Options{
 			Addr:     nodes[0],
 			Password: "", // no password set

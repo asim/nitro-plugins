@@ -38,7 +38,7 @@ func makeMap(kv map[string]string) map[string]interface{} {
 
 		mp := make(map[string]interface{})
 		for _, h := range vals {
-			m, n := split(string(h), "=")
+			m, n := split(h, "=")
 			mp[m] = n
 		}
 

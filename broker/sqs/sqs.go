@@ -2,6 +2,7 @@ package sqs
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"time"
@@ -115,28 +116,35 @@ func (s *subscriber) getWaitSeconds() *int64 {
 
 func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
 	log.Log(fmt.Sprintf("Received SQS message: %d bytes", len(*msg.Body)))
-	m := &broker.Message{
-		Header: buildMessageHeader(msg.MessageAttributes),
-		Body:   []byte(*msg.Body),
-	}
 
-	p := &publication{
-		sMessage:  msg,
-		m:         m,
-		URL:       s.URL,
-		queueName: s.queueName,
-		svc:       s.svc,
-	}
-
-	if err := hdlr(p); err != nil {
-		fmt.Println(err)
-	}
-	if s.options.AutoAck {
-		err := p.Ack()
-		if err != nil {
-			log.Log(fmt.Sprintf("Failed auto-acknowledge of message: %s", err.Error()))
+	if decodeBody, err := base64.StdEncoding.DecodeString(*msg.Body); err != nil {
+		log.Log(fmt.Sprintf("Failed to decode message body : %s", err.Error()))
+	} else {
+		m := &broker.Message{
+			Header: buildMessageHeader(msg.MessageAttributes),
+			Body:   decodeBody,
 		}
+
+		p := &publication{
+			sMessage:  msg,
+			m:         m,
+			URL:       s.URL,
+			queueName: s.queueName,
+			svc:       s.svc,
+		}
+
+		if err := hdlr(p); err != nil {
+			fmt.Println(err)
+		}
+		if s.options.AutoAck {
+			err := p.Ack()
+			if err != nil {
+				log.Log(fmt.Sprintf("Failed auto-acknowledge of message: %s", err.Error()))
+			}
+		}
+
 	}
+
 }
 
 func (s *subscriber) Options() broker.SubscribeOptions {
@@ -218,8 +226,10 @@ func (b *sqsBroker) Publish(queueName string, msg *broker.Message, opts ...broke
 		return err
 	}
 
+	messageBody := base64.StdEncoding.EncodeToString(msg.Body)
+
 	input := &sqs.SendMessageInput{
-		MessageBody: aws.String(string(msg.Body[:])),
+		MessageBody: &messageBody,
 		QueueUrl:    &queueURL,
 	}
 	input.MessageAttributes = copyMessageHeader(msg)

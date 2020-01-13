@@ -212,7 +212,7 @@ func (z *zookeeperRegistry) GetService(name string) ([]*registry.Service, error)
 		}
 	}
 
-	var services []*registry.Service
+	services := make([]*registry.Service, 0, len(serviceMap))
 
 	for _, service := range serviceMap {
 		services = append(services, service)
@@ -283,7 +283,7 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 		options.Timeout = 5
 	}
 
-	var cAddrs []string
+	cAddrs := make([]string, 0, len(options.Addrs))
 	for _, addr := range options.Addrs {
 		if len(addr) == 0 {
 			continue

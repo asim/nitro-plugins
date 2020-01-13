@@ -217,7 +217,7 @@ func (c *kregistry) GetService(name string) ([]*registry.Service, error) {
 		vs.Nodes = append(vs.Nodes, svc.Nodes...)
 	}
 
-	var list []*registry.Service
+	list := make([]*registry.Service, 0, len(svcs))
 	for _, val := range svcs {
 		list = append(list, val)
 	}

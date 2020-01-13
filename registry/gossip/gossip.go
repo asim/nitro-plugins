@@ -809,8 +809,8 @@ func (g *gossipRegistry) GetService(name string) ([]*registry.Service, error) {
 }
 
 func (g *gossipRegistry) ListServices() ([]*registry.Service, error) {
-	var services []*registry.Service
 	g.RLock()
+	services := make([]*registry.Service, 0, len(g.services))
 	for _, service := range g.services {
 		services = append(services, service...)
 	}

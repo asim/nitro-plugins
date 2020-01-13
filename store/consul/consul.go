@@ -6,17 +6,16 @@ import (
 	"net"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/micro/go-micro/config/options"
 	"github.com/micro/go-micro/store"
 )
 
 type ckv struct {
-	options.Options
-	client *api.Client
+	options store.Options
+	client  *api.Client
 }
 
 func (c *ckv) Read(keys ...string) ([]*store.Record, error) {
-	var records []*store.Record
+	records := make([]*store.Record, 0, len(keys))
 
 	for _, key := range keys {
 		keyval, _, err := c.client.KV().Get(key, nil)
@@ -83,15 +82,14 @@ func (c *ckv) String() string {
 	return "consul"
 }
 
-func NewStore(opts ...options.Option) store.Store {
-	options := options.NewOptions(opts...)
-	config := api.DefaultConfig()
-
-	var nodes []string
-
-	if n, ok := options.Values().Get("store.nodes"); ok {
-		nodes = n.([]string)
+func NewStore(opts ...store.Option) store.Store {
+	var options store.Options
+	for _, o := range opts {
+		o(&options)
 	}
+
+	config := api.DefaultConfig()
+	nodes := options.Nodes
 
 	// set host
 	if len(nodes) > 0 {
@@ -107,7 +105,7 @@ func NewStore(opts ...options.Option) store.Store {
 	client, _ := api.NewClient(config)
 
 	return &ckv{
-		Options: options,
+		options: options,
 		client:  client,
 	}
 }

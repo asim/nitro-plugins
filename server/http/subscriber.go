@@ -55,7 +55,6 @@ func isExportedOrBuiltinType(t reflect.Type) bool {
 }
 
 func newSubscriber(topic string, sub interface{}, opts ...server.SubscriberOption) server.Subscriber {
-
 	options := server.SubscriberOptions{
 		AutoAck: true,
 	}
@@ -259,6 +258,9 @@ func (s *httpServer) createSubHandler(sb *httpSubscriber, opts server.Options) b
 					topic:       sb.topic,
 					contentType: ct,
 					payload:     req.Interface(),
+					header:      msg.Header,
+					body:        msg.Body,
+					codec:       co,
 				})
 			}()
 		}

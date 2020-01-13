@@ -1,13 +1,14 @@
 package http
 
+import "github.com/micro/go-micro/codec"
+
 type httpMessage struct {
 	topic       string
-	contentType string
 	payload     interface{}
-}
-
-func (r *httpMessage) ContentType() string {
-	return r.contentType
+	contentType string
+	header      map[string]string
+	body        []byte
+	codec       codec.Reader
 }
 
 func (r *httpMessage) Topic() string {
@@ -16,4 +17,20 @@ func (r *httpMessage) Topic() string {
 
 func (r *httpMessage) Payload() interface{} {
 	return r.payload
+}
+
+func (r *httpMessage) ContentType() string {
+	return r.contentType
+}
+
+func (r *httpMessage) Header() map[string]string {
+	return r.header
+}
+
+func (r *httpMessage) Body() []byte {
+	return r.body
+}
+
+func (r *httpMessage) Codec() codec.Reader {
+	return r.codec
 }

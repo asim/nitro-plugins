@@ -180,7 +180,7 @@ func (h *httpServer) Register() error {
 	}
 	h.registered = true
 
-	for sb, _ := range h.subscribers {
+	for sb := range h.subscribers {
 		handler := h.createSubHandler(sb, opts)
 		var subOpts []broker.SubscribeOption
 		if queue := sb.Options().Queue; len(queue) > 0 {

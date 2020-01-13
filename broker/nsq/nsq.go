@@ -105,7 +105,7 @@ func (n *nsqBroker) Connect() error {
 		return nil
 	}
 
-	var producers []*nsq.Producer
+	producers := make([]*nsq.Producer, 0, len(n.addrs))
 
 	// create producers
 	for _, addr := range n.addrs {

@@ -73,6 +73,9 @@ func TestHTTPClient(t *testing.T) {
 			{
 				Id:      "test.service.1",
 				Address: l.Addr().String(),
+				Metadata: map[string]string{
+					"protocol": "http",
+				},
 			},
 		},
 	}); err != nil {
@@ -229,6 +232,9 @@ func TestHTTPClientStream(t *testing.T) {
 			{
 				Id:      "test.service.1",
 				Address: l.Addr().String(),
+				Metadata: map[string]string{
+					"protocol": "http",
+				},
 			},
 		},
 	}); err != nil {

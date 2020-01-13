@@ -191,10 +191,10 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 		ctx = subscribeContext
 	}
 
-	requeueOnError := false
+	var requeueOnError bool
 	requeueOnError, _ = ctx.Value(requeueOnErrorKey{}).(bool)
 
-	durableQueue := false
+	var durableQueue bool
 	durableQueue, _ = ctx.Value(durableQueueKey{}).(bool)
 
 	var qArgs map[string]interface{}

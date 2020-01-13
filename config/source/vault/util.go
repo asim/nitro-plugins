@@ -2,10 +2,11 @@ package vault
 
 import (
 	"fmt"
-	"github.com/micro/go-micro/config/source"
 	"net"
 	"net/url"
 	"strings"
+
+	"github.com/micro/go-micro/config/source"
 )
 
 func makeMap(kv map[string]interface{}, secretName string) (map[string]interface{}, error) {
@@ -45,18 +46,14 @@ func getAddress(options source.Options) string {
 		if a[0] != 'h' {
 			addr, port, err := net.SplitHostPort(a)
 			if ae, ok := err.(*net.AddrError); ok && ae.Err == "missing port in address" {
-				port = "8200"
-				addr = a
-				return fmt.Sprintf("https://%s:%s", addr, port)
+				return fmt.Sprintf("https://%s:%s", a, "8200")
 			} else if err == nil {
 				return fmt.Sprintf("https://%s:%s", addr, port)
 			}
 		} else {
 			u, _ := url.Parse(a)
-
-			if host, port, _ := net.SplitHostPort(u.Host); host == "" {
-				port = "8200"
-				return fmt.Sprintf("%s://%s:%s", u.Scheme, u.Host, port)
+			if host, _, _ := net.SplitHostPort(u.Host); host == "" {
+				return fmt.Sprintf("%s://%s:%s", u.Scheme, u.Host, "8200")
 			} else {
 				return fmt.Sprintf("%s://%s", u.Scheme, u.Host)
 			}

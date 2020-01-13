@@ -25,18 +25,15 @@ func appToService(app *fargo.Application) []*registry.Service {
 		var endpoints []*registry.Endpoint
 
 		// get version
-		k, err := instance.Metadata.GetString("version")
-		if err != nil {
+		if _, err := instance.Metadata.GetString("version"); err != nil {
 			continue
 		}
 
-		k, err = instance.Metadata.GetString("endpoints")
-		if err == nil {
+		if k, err := instance.Metadata.GetString("endpoints"); err == nil {
 			json.Unmarshal([]byte(k), &endpoints)
 		}
 
-		k, err = instance.Metadata.GetString("metadata")
-		if err == nil {
+		if k, err := instance.Metadata.GetString("metadata"); err == nil {
 			json.Unmarshal([]byte(k), &metadata)
 		}
 
@@ -62,8 +59,7 @@ func appToService(app *fargo.Application) []*registry.Service {
 		serviceMap[version] = service
 	}
 
-	var services []*registry.Service
-
+	services := make([]*registry.Service, 0, len(serviceMap))
 	for _, service := range serviceMap {
 		services = append(services, service)
 	}

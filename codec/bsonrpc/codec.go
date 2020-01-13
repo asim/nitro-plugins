@@ -7,10 +7,6 @@ import (
 	"github.com/micro/go-micro/codec"
 )
 
-const (
-	bufferSize = 4096
-)
-
 type clientCodec struct {
 	rwc io.ReadWriteCloser
 }

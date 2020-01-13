@@ -102,7 +102,7 @@ func (n *stanBroker) Address() string {
 }
 
 func setAddrs(addrs []string) []string {
-	var cAddrs []string
+	cAddrs := make([]string, 0, len(addrs))
 	for _, addr := range addrs {
 		if len(addr) == 0 {
 			continue

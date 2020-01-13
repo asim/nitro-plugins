@@ -55,6 +55,11 @@ func (c *consul) Read() (*source.ChangeSet, error) {
 	return cs, nil
 }
 
+// Write is unsupported
+func (c *consul) Write(cs *source.ChangeSet) error {
+	return nil
+}
+
 func (c *consul) String() string {
 	return "consul"
 }

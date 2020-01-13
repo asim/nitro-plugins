@@ -50,6 +50,11 @@ func (u *urlSource) Watch() (source.Watcher, error) {
 	return newWatcher(u)
 }
 
+// Write is unsupported
+func (u *urlSource) Write(cs *source.ChangeSet) error {
+	return nil
+}
+
 func (u *urlSource) String() string {
 	return "url"
 }

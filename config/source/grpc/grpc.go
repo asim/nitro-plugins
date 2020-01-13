@@ -59,6 +59,11 @@ func (g *grpcSource) Watch() (source.Watcher, error) {
 	return newWatcher(rsp)
 }
 
+// Write is unsupported
+func (g *grpcSource) Write(cs *source.ChangeSet) error {
+	return nil
+}
+
 func (g *grpcSource) String() string {
 	return "grpc"
 }

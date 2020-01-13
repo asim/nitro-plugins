@@ -43,11 +43,16 @@ func (f *file) Read() (*source.ChangeSet, error) {
 
 }
 
-func (fs *file) Watch() (source.Watcher, error) {
+func (f *file) Watch() (source.Watcher, error) {
 	return source.NewNoopWatcher()
 }
 
-func (fs *file) String() string {
+// Write is unsupported
+func (f *file) Write(cs *source.ChangeSet) error {
+	return nil
+}
+
+func (f *file) String() string {
 	return "pkger"
 }
 

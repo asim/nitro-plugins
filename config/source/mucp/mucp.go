@@ -39,6 +39,11 @@ func (m *mucpSource) Watch() (w source.Watcher, err error) {
 	return newWatcher(stream)
 }
 
+// Write is unsupported
+func (m *mucpSource) Write(cs *source.ChangeSet) error {
+	return nil
+}
+
 func (m *mucpSource) String() string {
 	return "mucp"
 }

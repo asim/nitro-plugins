@@ -53,6 +53,11 @@ func (k *configmap) Read() (*source.ChangeSet, error) {
 	return cs, nil
 }
 
+// Write is unsupported
+func (k *configmap) Write(cs *source.ChangeSet) error {
+	return nil
+}
+
 func (k *configmap) String() string {
 	return "configmap"
 }

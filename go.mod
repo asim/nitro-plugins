@@ -197,3 +197,61 @@ replace github.com/micro/go-plugins/agent/command/whereareyou => ./agent/command
 replace github.com/micro/go-plugins/agent/command/animate => ./agent/command/animate
 
 replace github.com/micro/go-plugins/proxy/http => ./proxy/http
+
+require (
+	github.com/micro/go-micro v1.18.0
+	github.com/micro/go-plugins/agent/command/animate v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/agent/command/geocode v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/agent/command/whereareyou v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/gocloud v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/googlepubsub v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/grpc v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/http v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/kafka v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/memory v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/mqtt v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/nats v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/nsq v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/proxy v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/rabbitmq v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/redis v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/service v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/snssqs v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/sqs v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/stan v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/broker/stomp v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/client/http v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/client/selector/label v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/client/selector/shard v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/client/selector/static v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/codec/bsonrpc v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/codec/jsonrpc2 v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/codec/msgpackrpc v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/encoder/cue v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/configmap v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/consul v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/grpc v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/mucp v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/pkger v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/runtimevar v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/url v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/config/source/vault v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/auth v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/cors v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/disable_rpc v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/gzip v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/header v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/index v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/ip_whitelist v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/metadata v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/metrics v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/metrics/prometheus v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/router v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/stats_auth v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/trace/awsxray v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/trace/uuid v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/micro/whitelist v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/proxy/http v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/go-plugins/wrapper/trace/awsxray v0.0.0-00010101000000-000000000000 // indirect
+	github.com/micro/micro v1.18.0
+)

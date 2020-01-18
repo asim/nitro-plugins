@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 mod=$(go list -m)
 PKGS=""
 for d in $(find * -name 'go.mod'); do
-  PKGS=" ${mod}/$(dirname $d)"
+  PKGS=" $PKGS ${mod}/$(dirname $d)"
 done
 
 go test -race -v $PKGS || :

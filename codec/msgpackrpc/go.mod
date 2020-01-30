@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/v2/codec/msgpackrpc
+module github.com/micro/go-plugins/codec/msgpackrpc/v2
 
 go 1.13
 

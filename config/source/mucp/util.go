@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/micro/go-micro/v2/config/source"
-	proto "github.com/micro/go-plugins/v2/config/source/mucp/proto"
+	proto "github.com/micro/go-plugins/config/source/mucp/v2/proto"
 )
 
 func toChangeSet(c *proto.ChangeSet) *source.ChangeSet {

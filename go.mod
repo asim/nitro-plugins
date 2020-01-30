@@ -199,6 +199,7 @@ replace github.com/micro/go-plugins/v2/agent/command/animate => ./agent/command/
 replace github.com/micro/go-plugins/v2/proxy/http => ./proxy/http
 
 require (
+	github.com/micro/go-micro v1.18.0
 	github.com/micro/go-micro/v2 v2.0.0
 	github.com/micro/micro/v2 v2.0.0
 )

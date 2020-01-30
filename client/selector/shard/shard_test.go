@@ -6,7 +6,7 @@ import (
 	"github.com/micro/go-micro/v2/client"
 	"github.com/micro/go-micro/v2/client/selector"
 	"github.com/micro/go-micro/v2/registry"
-	"github.com/micro/go-plugins/v2/client/selector/shard"
+	"github.com/micro/go-plugins/client/selector/shard/v2"
 )
 
 func TestShard(t *testing.T) {

@@ -10,9 +10,9 @@ import (
 	"github.com/micro/micro/v2/plugin"
 
 	// enterprise auth
-	"github.com/micro/go-plugins/micro/auth/basic/v2"
-	"github.com/micro/go-plugins/micro/auth/digest/v2"
-	"github.com/micro/go-plugins/micro/auth/ldap/v2"
+	"github.com/micro/go-plugins/micro/auth/v2/basic"
+	"github.com/micro/go-plugins/micro/auth/v2/digest"
+	"github.com/micro/go-plugins/micro/auth/v2/ldap"
 )
 
 type Auth struct {

@@ -6,9 +6,6 @@ for m in $(find ./ -name 'go.mod'); do
     continue
   fi
   pushd $d;
-  go get github.com/micro/go-micro/v2@v2.0.0;
-  #go get github.com/micro/go-plugins/v2@v2.0.0;
-  go get github.com/micro/micro/v2@v2.0.0;
-  go mod tidy;
+  /bin/bash -c 'go get github.com/micro/go-micro/v2@v2.0.0 github.com/micro/micro/v2@v2.0.0 && go mod tidy' &
   popd;
 done

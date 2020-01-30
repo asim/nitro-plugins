@@ -23,7 +23,7 @@ import (
 	"github.com/micro/go-micro/v2/util/log"
 	mnet "github.com/micro/go-micro/v2/util/net"
 	mls "github.com/micro/go-micro/v2/util/tls"
-	proto "github.com/micro/go-plugins/v2/broker/grpc/proto"
+	proto "github.com/micro/go-plugins/broker/grpc/v2/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

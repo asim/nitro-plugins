@@ -1,8 +1,8 @@
-module github.com/micro/go-plugins/v2/config/source/consul
+module github.com/micro/go-plugins/config/source/consul/v2
 
 go 1.13
 
 require (
 	github.com/hashicorp/consul/api v1.3.0
-	github.com/micro/go-micro v1.18.0
+	github.com/micro/go-micro/v2 v2.0.0
 )

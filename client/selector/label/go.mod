@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/v2/client/selector/label
+module github.com/micro/go-plugins/client/selector/label/v2
 
 go 1.13
 

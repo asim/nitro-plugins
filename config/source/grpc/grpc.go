@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 
 	"github.com/micro/go-micro/v2/config/source"
-	proto "github.com/micro/go-plugins/v2/config/source/grpc/proto"
+	proto "github.com/micro/go-plugins/config/source/grpc/v2/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

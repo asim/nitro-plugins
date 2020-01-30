@@ -1,5 +1,5 @@
-module github.com/micro/go-plugins/v2/agent/command/geocode
+module github.com/micro/go-plugins/agent/command/geocode/v2
 
 go 1.13
 
-require github.com/micro/go-micro v1.18.0
+require github.com/micro/go-micro/v2 v2.0.0

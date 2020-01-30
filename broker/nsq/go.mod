@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/nsq
+module github.com/micro/go-plugins/v2/broker/nsq
 
 go 1.13
 

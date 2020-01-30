@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/micro/cli"
-	"github.com/micro/go-micro/config"
-	"github.com/micro/go-micro/config/source"
-	"github.com/micro/go-micro/config/source/file"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/go-micro/v2/config"
+	"github.com/micro/go-micro/v2/config/source"
+	"github.com/micro/go-micro/v2/config/source/file"
+	"github.com/micro/micro/v2/plugin"
 	"github.com/sirupsen/logrus"
 )
 

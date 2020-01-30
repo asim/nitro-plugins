@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/agent/command/whereareyou
+module github.com/micro/go-plugins/v2/agent/command/whereareyou
 
 go 1.13
 

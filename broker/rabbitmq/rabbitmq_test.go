@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	micro "github.com/micro/go-micro"
-	broker "github.com/micro/go-micro/broker"
-	server "github.com/micro/go-micro/server"
-	rabbitmq "github.com/micro/go-plugins/broker/rabbitmq"
+	micro "github.com/micro/go-micro/v2"
+	broker "github.com/micro/go-micro/v2/broker"
+	server "github.com/micro/go-micro/v2/server"
+	rabbitmq "github.com/micro/go-plugins/v2/broker/rabbitmq"
 )
 
 type Example struct{}

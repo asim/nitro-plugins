@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/snssqs
+module github.com/micro/go-plugins/v2/broker/snssqs
 
 go 1.13
 

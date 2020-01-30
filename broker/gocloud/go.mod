@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/gocloud
+module github.com/micro/go-plugins/v2/broker/gocloud
 
 go 1.13
 

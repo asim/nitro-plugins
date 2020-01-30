@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/service
+module github.com/micro/go-plugins/v2/broker/service
 
 go 1.13
 

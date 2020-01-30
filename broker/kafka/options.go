@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/Shopify/sarama"
-	"github.com/micro/go-micro/broker"
-	log "github.com/micro/go-micro/util/log"
+	"github.com/micro/go-micro/v2/broker"
+	log "github.com/micro/go-micro/v2/util/log"
 )
 
 var (

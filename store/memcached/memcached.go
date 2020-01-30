@@ -10,7 +10,7 @@ import (
 	"time"
 
 	mc "github.com/bradfitz/gomemcache/memcache"
-	"github.com/micro/go-micro/store"
+	"github.com/micro/go-micro/v2/store"
 )
 
 type mkv struct {

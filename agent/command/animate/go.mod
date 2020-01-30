@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/agent/command/animate
+module github.com/micro/go-plugins/v2/agent/command/animate
 
 go 1.13
 

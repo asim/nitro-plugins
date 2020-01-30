@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/config/source/url
+module github.com/micro/go-plugins/v2/config/source/url
 
 go 1.13
 

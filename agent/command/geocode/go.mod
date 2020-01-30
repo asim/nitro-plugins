@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/agent/command/geocode
+module github.com/micro/go-plugins/v2/agent/command/geocode
 
 go 1.13
 

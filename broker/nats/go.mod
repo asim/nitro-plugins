@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/nats
+module github.com/micro/go-plugins/v2/broker/nats
 
 go 1.13
 

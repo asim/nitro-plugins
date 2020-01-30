@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/micro/go-micro/client/selector"
-	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/util/log"
-	"github.com/micro/go-plugins/registry/kubernetes/client"
-	"github.com/micro/go-plugins/registry/kubernetes/client/mock"
+	"github.com/micro/go-micro/v2/client/selector"
+	"github.com/micro/go-micro/v2/registry"
+	"github.com/micro/go-micro/v2/util/log"
+	"github.com/micro/go-plugins/registry/kubernetes/v2/client"
+	"github.com/micro/go-plugins/registry/kubernetes/v2/client/mock"
 )
 
 var (

@@ -11,8 +11,8 @@ import (
 
 	"github.com/go-stomp/stomp"
 	"github.com/go-stomp/stomp/frame"
-	"github.com/micro/go-micro/broker"
-	"github.com/micro/go-micro/config/cmd"
+	"github.com/micro/go-micro/v2/broker"
+	"github.com/micro/go-micro/v2/config/cmd"
 )
 
 type rbroker struct {

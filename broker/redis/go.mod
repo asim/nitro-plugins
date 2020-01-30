@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/redis
+module github.com/micro/go-plugins/v2/broker/redis
 
 go 1.13
 

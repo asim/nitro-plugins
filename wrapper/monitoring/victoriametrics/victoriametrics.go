@@ -7,7 +7,7 @@ import (
 	"time"
 
 	metrics "github.com/VictoriaMetrics/metrics"
-	"github.com/micro/go-micro/server"
+	"github.com/micro/go-micro/v2/server"
 )
 
 var (

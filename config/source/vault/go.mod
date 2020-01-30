@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/config/source/vault
+module github.com/micro/go-plugins/v2/config/source/vault
 
 go 1.13
 

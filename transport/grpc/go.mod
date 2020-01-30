@@ -1,5 +1,5 @@
-module github.com/micro/go-plugins/transport/grpc
+module github.com/micro/go-plugins/transport/grpc/v2
 
 go 1.13
 
-require github.com/micro/go-micro v1.18.0
+require github.com/micro/go-micro/v2 v2.0.0

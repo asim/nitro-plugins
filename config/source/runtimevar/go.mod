@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/config/source/runtimevar
+module github.com/micro/go-plugins/v2/config/source/runtimevar
 
 go 1.13
 

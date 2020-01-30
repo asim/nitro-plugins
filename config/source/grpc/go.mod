@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/config/source/grpc
+module github.com/micro/go-plugins/v2/config/source/grpc
 
 go 1.13
 

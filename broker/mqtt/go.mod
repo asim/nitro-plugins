@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/mqtt
+module github.com/micro/go-plugins/v2/broker/mqtt
 
 go 1.13
 

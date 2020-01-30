@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/stan
+module github.com/micro/go-plugins/v2/broker/stan
 
 go 1.13
 

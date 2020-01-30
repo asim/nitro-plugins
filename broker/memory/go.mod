@@ -1,4 +1,4 @@
-module github.com/micro/go-plugins/broker/memory
+module github.com/micro/go-plugins/v2/broker/memory
 
 go 1.13
 

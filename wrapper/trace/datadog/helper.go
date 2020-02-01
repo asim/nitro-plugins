@@ -17,9 +17,6 @@ func StartSpanFromContext(ctx context.Context, operationName string, opts ...tra
 		md = make(map[string]string)
 	}
 
-	// copy the metadata to prevent race
-	md = metadata.Copy(md)
-
 	if spanCtx, err := tracer.Extract(tracer.TextMapCarrier(md)); err == nil {
 		opts = append(opts, tracer.ChildOf(spanCtx))
 	}

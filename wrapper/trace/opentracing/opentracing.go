@@ -26,9 +26,6 @@ func StartSpanFromContext(ctx context.Context, tracer opentracing.Tracer, name s
 		md = make(map[string]string)
 	}
 
-	// copy the metadata to prevent race
-	md = metadata.Copy(md)
-
 	// Find parent span.
 	// First try to get span within current service boundary.
 	// If there doesn't exist, try to get it from go-micro metadata(which is cross boundary)

@@ -29,7 +29,7 @@ type clientWrapper struct {
 func injectTraceIntoCtx(ctx context.Context, span *trace.Span) context.Context {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
-		md = make(map[string]string)
+		md = make(metadata.Metadata)
 	}
 
 	spanCtx := propagation.Binary(span.SpanContext())
@@ -79,7 +79,7 @@ func NewClientWrapper() client.Wrapper {
 func getTraceFromCtx(ctx context.Context) *trace.SpanContext {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
-		md = make(map[string]string)
+		md = make(metadata.Metadata)
 	}
 
 	encodedTraceCtx, ok := md[TracePropagationField]

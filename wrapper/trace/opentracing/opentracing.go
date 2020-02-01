@@ -23,7 +23,7 @@ type otWrapper struct {
 func StartSpanFromContext(ctx context.Context, tracer opentracing.Tracer, name string, opts ...opentracing.StartSpanOption) (context.Context, opentracing.Span, error) {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
-		md = make(map[string]string)
+		md = make(metadata.Metadata)
 	}
 
 	// Find parent span.

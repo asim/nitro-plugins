@@ -34,7 +34,7 @@ func NewPlugin() plugin.Plugin {
 	return plugin.NewPlugin(
 		plugin.WithName("metrics"),
 		plugin.WithFlag(
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:  "metrics",
 				Usage: "Specify the type of metrics provider e.g prometheus",
 			},

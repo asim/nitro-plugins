@@ -18,10 +18,10 @@ type whitelist struct {
 
 func (w *whitelist) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "ip_whitelist",
 			Usage:  "Comma separated whitelist of allowed IPs",
-			EnvVar: "IP_WHITELIST",
+			EnvVars: []string{"IP_WHITELIST"},
 		},
 	}
 }
@@ -68,7 +68,7 @@ func (w *whitelist) match(ip string) bool {
 	return false
 }
 
-func (w *whitelist) Commands() []cli.Command {
+func (w *whitelist) Commands() []*cli.Command {
 	return nil
 }
 

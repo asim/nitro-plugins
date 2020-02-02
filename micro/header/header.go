@@ -14,15 +14,15 @@ type header struct {
 
 func (h *header) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringSliceFlag{
+		&cli.StringSliceFlag{
 			Name:   "header",
 			Usage:  "Headers to be set in the http response",
-			EnvVar: "HEADER",
+			EnvVars: []string{"HEADER"},
 		},
 	}
 }
 
-func (h *header) Commands() []cli.Command {
+func (h *header) Commands() []*cli.Command {
 	return nil
 }
 

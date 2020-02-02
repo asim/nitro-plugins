@@ -15,15 +15,15 @@ type metadata struct {
 
 func (m *metadata) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringSliceFlag{
+		&cli.StringSliceFlag{
 			Name:   "metadata",
 			Usage:  "A list of key-value pairs to be forwarded as metadata",
-			EnvVar: "METADATA",
+			EnvVars: []string{"METADATA"},
 		},
 	}
 }
 
-func (m *metadata) Commands() []cli.Command {
+func (m *metadata) Commands() []*cli.Command {
 	return nil
 }
 

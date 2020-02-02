@@ -23,7 +23,7 @@ func (g *gzipper) Flags() []cli.Flag {
 	return nil
 }
 
-func (g *gzipper) Commands() []cli.Command {
+func (g *gzipper) Commands() []*cli.Command {
 	return nil
 }
 

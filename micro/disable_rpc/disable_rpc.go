@@ -14,7 +14,7 @@ func (i *disable_rpc) Flags() []cli.Flag {
 	return nil
 }
 
-func (r *disable_rpc) Commands() []cli.Command {
+func (r *disable_rpc) Commands() []*cli.Command {
 	return nil
 }
 

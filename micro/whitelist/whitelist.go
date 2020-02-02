@@ -16,15 +16,15 @@ type whitelist struct {
 
 func (w *whitelist) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "rpc_whitelist",
 			Usage:  "Comma separated whitelist of allowed services for RPC calls",
-			EnvVar: "RPC_WHITELIST",
+			EnvVars: []string{"RPC_WHITELIST"},
 		},
 	}
 }
 
-func (w *whitelist) Commands() []cli.Command {
+func (w *whitelist) Commands() []*cli.Command {
 	return nil
 }
 

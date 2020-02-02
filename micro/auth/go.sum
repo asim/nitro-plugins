@@ -38,6 +38,8 @@ github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWX
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/abbot/go-http-auth v0.4.0 h1:QjmvZ5gSC7jm3Zg54DqWE/T5m1t2AfDu6QlXJT0EVT0=
 github.com/abbot/go-http-auth v0.4.0/go.mod h1:Cz6ARTIzApMJDzh5bRMSUou6UMSp0IEXg9km/ci7TJM=
+github.com/abbot/go-http-auth v0.4.1-0.20181019201920-860ed7f246ff h1:9ZqcMQ0fB+ywKACVjGfZM4C7Uq9D5rq0iSmwIjX187k=
+github.com/abbot/go-http-auth v0.4.1-0.20181019201920-860ed7f246ff/go.mod h1:Cz6ARTIzApMJDzh5bRMSUou6UMSp0IEXg9km/ci7TJM=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v0.9.0/go.mod h1:zpDJeKyp9ScW4NNrbdr+Eyxvry3ilGPewKoXw3XGN1k=
 github.com/alangpierce/go-forceexport v0.0.0-20160317203124-8f1d6941cd75/go.mod h1:uAXEEpARkRhCZfEvy/y0Jcc888f9tHCc1W7/UeEtreE=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7/go.mod h1:6zEj6s6u/ghQa61ZWa/C2Aw3RkjiTBOix7dkqa1VLIs=

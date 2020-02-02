@@ -44,11 +44,11 @@ func NewPlugin() plugin.Plugin {
 	return plugin.NewPlugin(
 		plugin.WithName("auth"),
 		plugin.WithFlag(
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:  "auth",
 				Usage: "Specify the type of auth e.g basic:///path/to/file, digest:///path/to/file, ldap[s]://url",
 			},
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:  "realm",
 				Usage: "Specify the realm for auth",
 			},

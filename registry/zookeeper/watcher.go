@@ -56,6 +56,17 @@ func (zw *zookeeperWatcher) writeRespChan(resp *watchResponse) {
 	}
 }
 
+func (zw *zookeeperWatcher) writeResult(r *result) {
+	if r == nil {
+		return
+	}
+	select {
+	case <-zw.stop:
+	default:
+		zw.results <- *r
+	}
+}
+
 func (zw *zookeeperWatcher) watchDir(key string) {
 	for {
 		// get current children for a key
@@ -175,7 +186,7 @@ func (zw *zookeeperWatcher) watch() {
 		}
 		allServices, _, err := zw.client.Children(prefix)
 		if err != nil {
-			zw.results <- result{nil, err}
+			zw.writeResult(&result{nil, err})
 		}
 		return allServices
 	}
@@ -186,7 +197,7 @@ func (zw *zookeeperWatcher) watch() {
 		go zw.watchDir(sPath)
 		children, _, err := zw.client.Children(sPath)
 		if err != nil {
-			zw.results <- result{nil, err}
+			zw.writeResult(&result{nil, err})
 		}
 		for _, c := range children {
 			go zw.watchKey(path.Join(sPath, c))
@@ -201,7 +212,7 @@ func (zw *zookeeperWatcher) watch() {
 			return
 		case rsp := <-zw.respChan:
 			if rsp.err != nil {
-				zw.results <- result{nil, rsp.err}
+				zw.writeResult(&result{nil, rsp.err})
 				continue
 			}
 			switch rsp.event.Type {
@@ -216,7 +227,7 @@ func (zw *zookeeperWatcher) watch() {
 				service = rsp.service
 			}
 		}
-		zw.results <- result{&registry.Result{Action: action, Service: service}, nil}
+		zw.writeResult(&result{&registry.Result{Action: action, Service: service}, nil})
 	}
 }
 

@@ -2,15 +2,15 @@
 package kubernetes
 
 import (
-	"github.com/micro/go-micro"
-	"github.com/micro/go-micro/service/grpc"
-	"github.com/micro/go-micro/web"
-	"github.com/micro/go-plugins/registry/kubernetes"
+	"github.com/micro/go-micro/v2"
+	"github.com/micro/go-micro/v2/service/grpc"
+	"github.com/micro/go-micro/v2/web"
+	"github.com/micro/go-plugins/registry/kubernetes/v2"
 
 	// static selector offloads load balancing to k8s services
 	// enable with MICRO_SELECTOR=static or --selector=static
 	// requires user to create k8s services
-	"github.com/micro/go-plugins/client/selector/static"
+	"github.com/micro/go-plugins/client/selector/static/v2"
 )
 
 // NewService returns a web service for kubernetes

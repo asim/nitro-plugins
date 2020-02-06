@@ -22,7 +22,7 @@ func TestNewRabbitMQConnURL(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		conn := newRabbitMQConn(exchange{name: "exchange"}, test.urls, 0, false)
+		conn := newRabbitMQConn(Exchange{Name: "exchange"}, test.urls, 0, false)
 
 		if have, want := conn.url, test.want; have != want {
 			t.Errorf("%s: invalid url, want %q, have %q", test.title, want, have)
@@ -64,7 +64,7 @@ func TestTryToConnectTLS(t *testing.T) {
 	for _, test := range testcases {
 		dialCount, dialTLSCount = 0, 0
 
-		conn := newRabbitMQConn(exchange{name: "exchange"}, []string{test.url}, 0, false)
+		conn := newRabbitMQConn(Exchange{Name: "exchange"}, []string{test.url}, 0, false)
 		conn.tryConnect(test.secure, test.amqpConfig)
 
 		have := dialCount
@@ -93,7 +93,7 @@ func TestNewRabbitMQPrefetch(t *testing.T) {
 	}
 
 	for _, test := range testcases {
-		conn := newRabbitMQConn(exchange{name: "exchange"}, test.urls, test.prefetchCount, test.prefetchGlobal)
+		conn := newRabbitMQConn(Exchange{Name: "exchange"}, test.urls, test.prefetchCount, test.prefetchGlobal)
 
 		if have, want := conn.prefetchCount, test.prefetchCount; have != want {
 			t.Errorf("%s: invalid prefetch count, want %d, have %d", test.title, want, have)

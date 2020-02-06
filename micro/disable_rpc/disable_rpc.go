@@ -4,8 +4,8 @@ package disable_rpc
 import (
 	"net/http"
 
-	"github.com/micro/cli"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/micro/v2/plugin"
 )
 
 type disable_rpc struct{}
@@ -14,7 +14,7 @@ func (i *disable_rpc) Flags() []cli.Flag {
 	return nil
 }
 
-func (r *disable_rpc) Commands() []cli.Command {
+func (r *disable_rpc) Commands() []*cli.Command {
 	return nil
 }
 

@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/micro/go-micro/config/cmd"
-	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/util/log"
+	"github.com/micro/go-micro/v2/config/cmd"
+	"github.com/micro/go-micro/v2/registry"
+	"github.com/micro/go-micro/v2/util/log"
 	"github.com/samuel/go-zookeeper/zk"
 
 	hash "github.com/mitchellh/hashstructure"
@@ -62,12 +62,14 @@ func configure(z *zookeeperRegistry, opts ...registry.Option) error {
 	// connect to zookeeper
 	c, _, err := zk.Connect(cAddrs, time.Second*z.options.Timeout)
 	if err != nil {
-		log.Fatal(err)
+		log.Logf(err.Error())
+		return err
 	}
 
 	// create our prefix path
 	if err := createPath(prefix, []byte{}, c); err != nil {
-		log.Fatal(err)
+		log.Logf(err.Error())
+		return err
 	}
 
 	z.client = c
@@ -298,12 +300,14 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 	// connect to zookeeper
 	c, _, err := zk.Connect(cAddrs, time.Second*options.Timeout)
 	if err != nil {
-		log.Fatal(err)
+		log.Logf(err.Error())
+		return nil
 	}
 
 	// create our prefix path
 	if err := createPath(prefix, []byte{}, c); err != nil {
-		log.Fatal(err)
+		log.Logf(err.Error())
+		return nil
 	}
 
 	return &zookeeperRegistry{

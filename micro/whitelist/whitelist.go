@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/micro/cli"
-	"github.com/micro/go-micro/client"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/go-micro/v2/client"
+	"github.com/micro/micro/v2/plugin"
 )
 
 type whitelist struct {
@@ -16,15 +16,15 @@ type whitelist struct {
 
 func (w *whitelist) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "rpc_whitelist",
 			Usage:  "Comma separated whitelist of allowed services for RPC calls",
-			EnvVar: "RPC_WHITELIST",
+			EnvVars: []string{"RPC_WHITELIST"},
 		},
 	}
 }
 
-func (w *whitelist) Commands() []cli.Command {
+func (w *whitelist) Commands() []*cli.Command {
 	return nil
 }
 

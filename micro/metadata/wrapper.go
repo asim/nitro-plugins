@@ -3,8 +3,8 @@ package metadata
 import (
 	"context"
 
-	"github.com/micro/go-micro/client"
-	meta "github.com/micro/go-micro/metadata"
+	"github.com/micro/go-micro/v2/client"
+	meta "github.com/micro/go-micro/v2/metadata"
 )
 
 type wrapper struct {
@@ -15,20 +15,15 @@ type wrapper struct {
 func (w *wrapper) Call(ctx context.Context, req client.Request, rsp interface{}, opts ...client.CallOption) error {
 	md, ok := meta.FromContext(ctx)
 	if !ok {
-		md = make(map[string]string)
+		md = make(meta.Metadata)
 	}
 
-	// copy
-	newMD := make(map[string]string)
-	for k, v := range md {
-		newMD[k] = v
-	}
 	// set our meta
 	for k, v := range w.md {
-		newMD[k] = v
+		md[k] = v
 	}
 
-	ctx = meta.NewContext(ctx, newMD)
+	ctx = meta.NewContext(ctx, md)
 	return w.Client.Call(ctx, req, rsp, opts...)
 }
 

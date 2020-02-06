@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"context"
+
 	"github.com/asim/go-awsxray"
-	"github.com/micro/go-micro/errors"
-	"github.com/micro/go-micro/metadata"
+	"github.com/micro/go-micro/v2/errors"
+	"github.com/micro/go-micro/v2/metadata"
 )
 
 // getHTTP returns a http struct
@@ -152,22 +153,19 @@ func setCallStatus(s *awsxray.Segment, url, method string, err error) {
 }
 
 func newContext(ctx context.Context, s *awsxray.Segment) context.Context {
-	md, _ := metadata.FromContext(ctx)
-
-	// make copy to avoid races
-	newMd := metadata.Metadata{}
-	for k, v := range md {
-		newMd[k] = v
+	md, ok := metadata.FromContext(ctx)
+	if !ok {
+		md = make(map[string]string)
 	}
 
 	// set trace id in header
-	newMd[awsxray.TraceHeader] = awsxray.SetTraceId(newMd[awsxray.TraceHeader], s.TraceId)
+	md[awsxray.TraceHeader] = awsxray.SetTraceId(md[awsxray.TraceHeader], s.TraceId)
 	// set parent id in header
-	newMd[awsxray.TraceHeader] = awsxray.SetParentId(newMd[awsxray.TraceHeader], s.ParentId)
+	md[awsxray.TraceHeader] = awsxray.SetParentId(md[awsxray.TraceHeader], s.ParentId)
 	// store segment in context
 	ctx = awsxray.NewContext(ctx, s)
 	// store metadata in context
-	ctx = metadata.NewContext(ctx, newMd)
+	ctx = metadata.NewContext(ctx, md)
 
 	return ctx
 }

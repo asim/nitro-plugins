@@ -7,9 +7,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/micro/go-micro/broker"
-	"github.com/micro/go-micro/codec/json"
-	"github.com/micro/go-micro/config/cmd"
+	"github.com/micro/go-micro/v2/broker"
+	"github.com/micro/go-micro/v2/codec/json"
+	"github.com/micro/go-micro/v2/config/cmd"
 	nats "github.com/nats-io/nats.go"
 )
 

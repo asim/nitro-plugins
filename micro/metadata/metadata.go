@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/micro/cli"
-	"github.com/micro/go-micro/client"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/go-micro/v2/client"
+	"github.com/micro/micro/v2/plugin"
 )
 
 type metadata struct {
@@ -15,15 +15,15 @@ type metadata struct {
 
 func (m *metadata) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringSliceFlag{
+		&cli.StringSliceFlag{
 			Name:   "metadata",
 			Usage:  "A list of key-value pairs to be forwarded as metadata",
-			EnvVar: "METADATA",
+			EnvVars: []string{"METADATA"},
 		},
 	}
 }
 
-func (m *metadata) Commands() []cli.Command {
+func (m *metadata) Commands() []*cli.Command {
 	return nil
 }
 

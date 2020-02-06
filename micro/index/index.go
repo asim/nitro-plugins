@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/micro/cli"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/micro/v2/plugin"
 )
 
 type index struct {
@@ -23,31 +23,31 @@ type response struct {
 
 func (i *index) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "index_service",
 			Usage:  "Service/Method to route index to. Specified without namespace e.g greeter/say/hello",
-			EnvVar: "INDEX_SERVICE",
+			EnvVars: []string{"INDEX_SERVICE"},
 		},
 		// flags for response instead of service
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:   "index_status",
 			Usage:  "HTTP status code for response",
-			EnvVar: "INDEX_STATUS",
+			EnvVars: []string{"INDEX_STATUS"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "index_header",
 			Usage:  "Comma separated list of key-value pairs for response header",
-			EnvVar: "INDEX_HEADER",
+			EnvVars: []string{"INDEX_HEADER"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "index_body",
 			Usage:  "Body of the response",
-			EnvVar: "INDEX_BODY",
+			EnvVars: []string{"INDEX_BODY"},
 		},
 	}
 }
 
-func (i *index) Commands() []cli.Command {
+func (i *index) Commands() []*cli.Command {
 	return nil
 }
 

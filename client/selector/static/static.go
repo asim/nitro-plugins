@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/micro/go-micro/client/selector"
-	"github.com/micro/go-micro/config/cmd"
-	"github.com/micro/go-micro/registry"
+	"github.com/micro/go-micro/v2/client/selector"
+	"github.com/micro/go-micro/v2/config/cmd"
+	"github.com/micro/go-micro/v2/registry"
 )
 
 const (

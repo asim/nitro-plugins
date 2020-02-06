@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/vault/api"
-	"github.com/micro/go-micro/config/source"
+	"github.com/micro/go-micro/v2/config/source"
 )
 
 // Currently a single vault reader
@@ -50,6 +50,10 @@ func (c *vault) Read() (*source.ChangeSet, error) {
 
 	return cs, nil
 	//return nil, nil
+}
+
+func (c *vault) Write(cs *source.ChangeSet) error {
+	return nil
 }
 
 func (c *vault) String() string {

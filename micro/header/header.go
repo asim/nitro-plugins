@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/micro/cli"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/micro/v2/plugin"
 )
 
 type header struct {
@@ -14,15 +14,15 @@ type header struct {
 
 func (h *header) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringSliceFlag{
+		&cli.StringSliceFlag{
 			Name:   "header",
 			Usage:  "Headers to be set in the http response",
-			EnvVar: "HEADER",
+			EnvVars: []string{"HEADER"},
 		},
 	}
 }
 
-func (h *header) Commands() []cli.Command {
+func (h *header) Commands() []*cli.Command {
 	return nil
 }
 

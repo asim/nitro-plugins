@@ -4,8 +4,8 @@ package stats_auth
 import (
 	"net/http"
 
-	"github.com/micro/cli"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/micro/v2/plugin"
 )
 
 const (
@@ -20,25 +20,25 @@ type stats_auth struct {
 
 func (sa *stats_auth) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "stats_auth_user",
 			Usage:  "Username used for basic auth for /stats endpoint",
-			EnvVar: "STATS_AUTH_USER",
+			EnvVars: []string{"STATS_AUTH_USER"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "stats_auth_pass",
 			Usage:  "Password used for basic auth for /stats endpoint",
-			EnvVar: "STATS_AUTH_PASS",
+			EnvVars: []string{"STATS_AUTH_PASS"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "stats_auth_realm",
 			Usage:  "Realm used for basic auth for /stats endpoint. Escape spaces to add multiple words. Optional. Defaults to " + defaultRealm,
-			EnvVar: "STATS_AUTH_REALM",
+			EnvVars: []string{"STATS_AUTH_REALM"},
 		},
 	}
 }
 
-func (sa *stats_auth) Commands() []cli.Command {
+func (sa *stats_auth) Commands() []*cli.Command {
 	return nil
 }
 

@@ -3,8 +3,8 @@ package http
 import (
 	"net/http"
 
-	"github.com/micro/go-micro/transport"
-	thttp "github.com/micro/go-micro/transport/http"
+	"github.com/micro/go-micro/v2/transport"
+	thttp "github.com/micro/go-micro/v2/transport/http"
 )
 
 // Handle registers the handler for the given pattern.

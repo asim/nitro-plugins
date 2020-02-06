@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/micro/cli"
-	"github.com/micro/micro/plugin"
+	"github.com/micro/cli/v2"
+	"github.com/micro/micro/v2/plugin"
 	"github.com/rs/cors"
 )
 
@@ -17,25 +17,25 @@ type allowedCors struct {
 
 func (ac *allowedCors) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "cors-allowed-headers",
 			Usage:  "Comma-seperated list of allowed headers",
-			EnvVar: "CORS_ALLOWED_HEADERS",
+			EnvVars: []string{"CORS_ALLOWED_HEADERS"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "cors-allowed-origins",
 			Usage:  "Comma-seperated list of allowed origins",
-			EnvVar: "CORS_ALLOWED_ORIGINS",
+			EnvVars: []string{"CORS_ALLOWED_ORIGINS"},
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:   "cors-allowed-methods",
 			Usage:  "Comma-seperated list of allowed methods",
-			EnvVar: "CORS_ALLOWED_METHODS",
+			EnvVars: []string{"CORS_ALLOWED_METHODS"},
 		},
 	}
 }
 
-func (ac *allowedCors) Commands() []cli.Command {
+func (ac *allowedCors) Commands() []*cli.Command {
 	return nil
 }
 

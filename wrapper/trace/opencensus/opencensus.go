@@ -6,10 +6,10 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/micro/go-micro/client"
-	"github.com/micro/go-micro/metadata"
-	"github.com/micro/go-micro/server"
-	"github.com/micro/go-micro/util/log"
+	"github.com/micro/go-micro/v2/client"
+	"github.com/micro/go-micro/v2/metadata"
+	"github.com/micro/go-micro/v2/server"
+	"github.com/micro/go-micro/v2/util/log"
 
 	"go.opencensus.io/trace"
 	"go.opencensus.io/trace/propagation"
@@ -29,7 +29,7 @@ type clientWrapper struct {
 func injectTraceIntoCtx(ctx context.Context, span *trace.Span) context.Context {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
-		md = make(map[string]string)
+		md = make(metadata.Metadata)
 	}
 
 	spanCtx := propagation.Binary(span.SpanContext())
@@ -79,7 +79,7 @@ func NewClientWrapper() client.Wrapper {
 func getTraceFromCtx(ctx context.Context) *trace.SpanContext {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
-		md = make(map[string]string)
+		md = make(metadata.Metadata)
 	}
 
 	encodedTraceCtx, ok := md[TracePropagationField]

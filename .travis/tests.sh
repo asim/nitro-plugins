@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-mod=$(go list -m | sed 's|/v2||g')
+mod="github.com/micro/go-plugins"
 PKGS=""
 for d in $(find * -name 'go.mod'); do
   PKGS=" $PKGS ${mod}/$(dirname $d)/v2"

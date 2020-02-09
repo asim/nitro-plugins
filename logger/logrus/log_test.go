@@ -3,7 +3,7 @@ package logrus
 import (
 	"testing"
 
-	log "github.com/micro/go-micro/logger"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/sirupsen/logrus"
 )
 

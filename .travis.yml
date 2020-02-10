@@ -5,6 +5,8 @@ env:
   - GO111MODULE=on IN_TRAVIS_CI=yes
 before_script:
   - go install github.com/golangci/golangci-lint/cmd/golangci-lint
+install:
+  - ./.travis/deps.sh
 script:
   - golangci-lint run || true
   - ./.travis/tests.sh

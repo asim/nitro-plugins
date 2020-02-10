@@ -293,7 +293,7 @@ func (h *grpcBroker) Connect() error {
 		return err
 	}
 
-	log.Logf("Broker Listening on %s", l.Addr().String())
+	log.Logf("[grpc] Broker Listening on %s", l.Addr().String())
 	addr := h.address
 	h.address = l.Addr().String()
 
@@ -320,7 +320,6 @@ func (h *grpcBroker) Connect() error {
 }
 
 func (h *grpcBroker) Disconnect() error {
-
 	h.RLock()
 	if !h.running {
 		h.RUnlock()
@@ -436,8 +435,19 @@ func (h *grpcBroker) Publish(topic string, msg *broker.Message, opts ...broker.P
 			return
 		}
 
+		defer func() {
+			if err := c.Close(); err != nil {
+				log.Logf(err.Error())
+				return
+			}
+		}()
+
 		// publish message
-		proto.NewBrokerClient(c).Publish(context.TODO(), m)
+		_, err = proto.NewBrokerClient(c).Publish(context.TODO(), m)
+		if err != nil {
+			log.Logf(err.Error())
+			return
+		}
 	}
 
 	for _, service := range s {

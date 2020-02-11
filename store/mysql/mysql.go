@@ -25,6 +25,8 @@ type sqlStore struct {
 	table    string
 
 	options store.Options
+
+	readPrepare, writePrepare, deletePrepare *sql.Stmt
 }
 
 func (s *sqlStore) Init(opts ...store.Option) error {
@@ -82,14 +84,8 @@ func (s *sqlStore) Read(key string, opts ...store.ReadOption) ([]*store.Record, 
 
 	// TODO: make use of options.Prefix using WHERE key LIKE = ?
 
-	q, err := s.db.Prepare(fmt.Sprintf("SELECT `key`, value, expiry FROM %s.%s WHERE `key` = ?;", s.database, s.table))
-	if err != nil {
-		return nil, err
-	}
-
 	var records []*store.Record
-
-	row := q.QueryRow(key)
+	row := s.readPrepare.QueryRow(key)
 	record := &store.Record{}
 	var cachedTime time.Time
 
@@ -112,13 +108,8 @@ func (s *sqlStore) Read(key string, opts ...store.ReadOption) ([]*store.Record, 
 
 // Write records
 func (s *sqlStore) Write(r *store.Record) error {
-	q, err := s.db.Prepare(fmt.Sprintf("INSERT INTO %s.%s (`key`, value, expiry) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE `value`= ?, `expiry` = ?", s.database, s.table))
-	if err != nil {
-		return err
-	}
-
 	timeCached := time.Now().Add(r.Expiry)
-	_, err = q.Exec(r.Key, r.Value, timeCached, r.Value, timeCached)
+	_, err := s.writePrepare.Exec(r.Key, r.Value, timeCached, r.Value, timeCached)
 	if err != nil {
 		return errors.Wrap(err, "Couldn't insert record "+r.Key)
 	}
@@ -128,12 +119,7 @@ func (s *sqlStore) Write(r *store.Record) error {
 
 // Delete records with keys
 func (s *sqlStore) Delete(key string) error {
-	q, err := s.db.Prepare(fmt.Sprintf("DELETE FROM %s.%s WHERE `key` = ?;", s.database, s.table))
-	if err != nil {
-		return err
-	}
-
-	result, err := q.Exec(key)
+	result, err := s.deletePrepare.Exec(key)
 	if err != nil {
 		return err
 	}
@@ -163,6 +149,11 @@ func (s *sqlStore) initDB() error {
 	if err != nil {
 		return errors.Wrap(err, "Couldn't create table")
 	}
+
+	// prepare
+	s.readPrepare, _ = s.db.Prepare(fmt.Sprintf("SELECT `key`, value, expiry FROM %s.%s WHERE `key` = ?;", s.database, s.table))
+	s.writePrepare, _ = s.db.Prepare(fmt.Sprintf("INSERT INTO %s.%s (`key`, value, expiry) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE `value`= ?, `expiry` = ?", s.database, s.table))
+	s.deletePrepare, _ = s.db.Prepare(fmt.Sprintf("DELETE FROM %s.%s WHERE `key` = ?;", s.database, s.table))
 
 	return nil
 }

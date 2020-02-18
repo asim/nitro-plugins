@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/micro/go-micro/v2/logger"
-	"github.com/micro/go-micro/v2/logger/log"
 	"github.com/rs/zerolog"
 )
 
@@ -24,11 +23,11 @@ func TestName(t *testing.T) {
 }
 
 func ExampleWithOut() {
-	log.SetGlobalLogger(NewLogger(WithOutput(os.Stdout), WithTimeFormat("ddd"), WithProductionMode()))
+	logger.SetGlobalLogger(NewLogger(WithOutput(os.Stdout), WithTimeFormat("ddd"), WithProductionMode()))
 
-	log.Info("testing: Info")
-	log.Infof("testing: %s", "Infof")
-	log.Infow("testing: Infow", map[string]interface{}{
+	logger.Info("testing: Info")
+	logger.Infof("testing: %s", "Infof")
+	logger.Infow("testing: Infow", map[string]interface{}{
 		"sumo":  "demo",
 		"human": true,
 		"age":   99,
@@ -40,37 +39,37 @@ func ExampleWithOut() {
 }
 
 func TestSetLevel(t *testing.T) {
-	log.SetGlobalLogger(NewLogger())
+	logger.SetGlobalLogger(NewLogger())
 
-	log.SetGlobalLevel(logger.DebugLevel)
-	log.Debugf("test show debug: %s", "debug msg")
+	logger.SetGlobalLevel(logger.DebugLevel)
+	logger.Debugf("test show debug: %s", "debug msg")
 
-	log.SetGlobalLevel(logger.InfoLevel)
-	log.Debugf("test non-show debug: %s", "debug msg")
+	logger.SetGlobalLevel(logger.InfoLevel)
+	logger.Debugf("test non-show debug: %s", "debug msg")
 }
 
 func TestWithReportCaller(t *testing.T) {
-	log.SetGlobalLogger(NewLogger(ReportCaller()))
+	logger.SetGlobalLogger(NewLogger(ReportCaller()))
 
-	log.Infof("testing: %s", "WithReportCaller")
+	logger.Infof("testing: %s", "WithReportCaller")
 }
 
 func TestWithOutput(t *testing.T) {
-	log.SetGlobalLogger(NewLogger(WithOutput(os.Stdout)))
+	logger.SetGlobalLogger(NewLogger(WithOutput(os.Stdout)))
 
-	log.Infof("testing: %s", "WithOutput")
+	logger.Infof("testing: %s", "WithOutput")
 }
 
 func TestWithDevelopmentMode(t *testing.T) {
-	log.SetGlobalLogger(NewLogger(WithDevelopmentMode(), WithTimeFormat(time.Kitchen)))
+	logger.SetGlobalLogger(NewLogger(WithDevelopmentMode(), WithTimeFormat(time.Kitchen)))
 
-	log.Infof("testing: %s", "DevelopmentMode")
+	logger.Infof("testing: %s", "DevelopmentMode")
 }
 
 func TestWithFields(t *testing.T) {
-	log.SetGlobalLogger(NewLogger())
+	logger.SetGlobalLogger(NewLogger())
 
-	log.Infow("testing: WithFields", map[string]interface{}{
+	logger.Infow("testing: WithFields", map[string]interface{}{
 		"sumo":  "demo",
 		"human": true,
 		"age":   99,
@@ -84,9 +83,9 @@ func TestWithError(t *testing.T) {
 		"alive": true,
 	}))
 	err := errors.Wrap(errors.New("error message"), "from error")
-	log.SetGlobalLogger(l)
-	log.Error("test with error")
-	log.Errorw("test with error", err)
+	logger.SetGlobalLogger(l)
+	logger.Error("test with error")
+	logger.Errorw("test with error", err)
 	// Output:
 	// {"level":"error","age":99,"alive":true,"name":"sumo","time":"2020-02-18T03:11:42-08:00","message":"test with error"}
 	// {"level":"error","age":99,"alive":true,"name":"sumo","stack":[{"func":"TestWithError","line":"86","source":"zerolog_test.go"},{"func":"tRunner","line":"909","source":"testing.go"},{"func":"goexit","line":"1357","source":"asm_amd64.s"}],"error":"from error: error message","time":"2020-02-18T03:11:42-08:00","message":"test with error"}
@@ -98,7 +97,7 @@ func TestWithHooks(t *testing.T) {
 		e.Str("test", "logged")
 	})
 
-	log.SetGlobalLogger(NewLogger(WithHooks([]zerolog.Hook{simpleHook})))
+	logger.SetGlobalLogger(NewLogger(WithHooks([]zerolog.Hook{simpleHook})))
 
-	log.Infof("testing: %s", "WithHooks")
+	logger.Infof("testing: %s", "WithHooks")
 }

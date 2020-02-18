@@ -36,10 +36,10 @@ func WithProductionMode() logger.Option {
 	return setOption(productionModeKey{}, true)
 }
 
-type outKey struct{}
+type outputKey struct{}
 
-func WithOut(out io.Writer) logger.Option {
-	return setOption(outKey{}, out)
+func WithOutput(out io.Writer) logger.Option {
+	return setOption(outputKey{}, out)
 }
 
 type fieldsKey struct{}

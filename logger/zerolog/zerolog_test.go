@@ -1,12 +1,15 @@
 package zerolog
 
 import (
-	"errors"
+	// "errors"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/micro/go-micro/v2/logger"
+	"github.com/micro/go-micro/v2/logger/log"
 	"github.com/rs/zerolog"
 )
 
@@ -20,57 +23,73 @@ func TestName(t *testing.T) {
 	t.Logf("testing logger name: %s", l.String())
 }
 
-// func ExampleWithOut() {
-// 	l := NewLogger(WithOut(os.Stdout), WithProductionMode())
+func ExampleWithOut() {
+	log.SetGlobalLogger(NewLogger(WithOutput(os.Stdout), WithTimeFormat("ddd"), WithProductionMode()))
 
-// 	l.Logf(logger.InfoLevel, "testing: %s", "logf")
-
-// 	// Output:
-// 	// {"level":"info","time":"2020-02-14T22:15:36-08:00","message":"testing: logf"}
-// }
-
-func TestSetLevel(t *testing.T) {
-	l := NewLogger()
-
-	l.SetLevel(logger.DebugLevel)
-	l.Logf(logger.DebugLevel, "test show debug: %s", "debug msg")
-
-	l.SetLevel(logger.InfoLevel)
-	l.Logf(logger.DebugLevel, "test non-show debug: %s", "debug msg")
-}
-
-func TestWithReportCaller(t *testing.T) {
-	l := NewLogger(ReportCaller())
-
-	l.Logf(logger.InfoLevel, "testing: %s", "WithReportCaller")
-}
-
-func TestWithOut(t *testing.T) {
-	l := NewLogger(WithOut(os.Stdout))
-
-	l.Logf(logger.InfoLevel, "testing: %s", "WithOut")
-}
-
-func TestWithDevelopmentMode(t *testing.T) {
-	l := NewLogger(WithDevelopmentMode(), WithTimeFormat(time.Kitchen))
-
-	l.Logf(logger.InfoLevel, "testing: %s", "DevelopmentMode")
-}
-
-func TestWithFields(t *testing.T) {
-	l := NewLogger()
-
-	l.Fields(map[string]interface{}{
+	log.Info("testing: Info")
+	log.Infof("testing: %s", "Infof")
+	log.Infow("testing: Infow", map[string]interface{}{
 		"sumo":  "demo",
 		"human": true,
 		"age":   99,
-	}).Logf(logger.InfoLevel, "testing: %s", "WithFields")
+	})
+	// Output:
+	// {"level":"info","time":"ddd","message":"testing: Info"}
+	// {"level":"info","time":"ddd","message":"testing: Infof"}
+	// {"level":"info","age":99,"human":true,"sumo":"demo","time":"ddd","message":"testing: Infow"}
+}
+
+func TestSetLevel(t *testing.T) {
+	log.SetGlobalLogger(NewLogger())
+
+	log.SetGlobalLevel(logger.DebugLevel)
+	log.Debugf("test show debug: %s", "debug msg")
+
+	log.SetGlobalLevel(logger.InfoLevel)
+	log.Debugf("test non-show debug: %s", "debug msg")
+}
+
+func TestWithReportCaller(t *testing.T) {
+	log.SetGlobalLogger(NewLogger(ReportCaller()))
+
+	log.Infof("testing: %s", "WithReportCaller")
+}
+
+func TestWithOutput(t *testing.T) {
+	log.SetGlobalLogger(NewLogger(WithOutput(os.Stdout)))
+
+	log.Infof("testing: %s", "WithOutput")
+}
+
+func TestWithDevelopmentMode(t *testing.T) {
+	log.SetGlobalLogger(NewLogger(WithDevelopmentMode(), WithTimeFormat(time.Kitchen)))
+
+	log.Infof("testing: %s", "DevelopmentMode")
+}
+
+func TestWithFields(t *testing.T) {
+	log.SetGlobalLogger(NewLogger())
+
+	log.Infow("testing: WithFields", map[string]interface{}{
+		"sumo":  "demo",
+		"human": true,
+		"age":   99,
+	})
 }
 
 func TestWithError(t *testing.T) {
-	l := NewLogger()
-
-	l.Error(errors.New("I am Error")).Logf(logger.ErrorLevel, "testing: %s", "WithError")
+	l := NewLogger(WithFields(map[string]interface{}{
+		"name":  "sumo",
+		"age":   99,
+		"alive": true,
+	}))
+	err := errors.Wrap(errors.New("error message"), "from error")
+	log.SetGlobalLogger(l)
+	log.Error("test with error")
+	log.Errorw("test with error", err)
+	// Output:
+	// {"level":"error","age":99,"alive":true,"name":"sumo","time":"2020-02-18T03:11:42-08:00","message":"test with error"}
+	// {"level":"error","age":99,"alive":true,"name":"sumo","stack":[{"func":"TestWithError","line":"86","source":"zerolog_test.go"},{"func":"tRunner","line":"909","source":"testing.go"},{"func":"goexit","line":"1357","source":"asm_amd64.s"}],"error":"from error: error message","time":"2020-02-18T03:11:42-08:00","message":"test with error"}
 }
 
 func TestWithHooks(t *testing.T) {
@@ -79,7 +98,7 @@ func TestWithHooks(t *testing.T) {
 		e.Str("test", "logged")
 	})
 
-	l := NewLogger(WithHooks([]zerolog.Hook{simpleHook}))
+	log.SetGlobalLogger(NewLogger(WithHooks([]zerolog.Hook{simpleHook})))
 
-	l.Logf(logger.InfoLevel, "testing: %s", "WithHooks")
+	log.Infof("testing: %s", "WithHooks")
 }

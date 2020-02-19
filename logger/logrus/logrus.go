@@ -1,10 +1,11 @@
 package logrus
 
 import (
+	"fmt"
 	"io"
 	"os"
 
-	log "github.com/micro/go-micro/v2/logger"
+	"github.com/micro/go-micro/v2/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,21 +18,11 @@ var (
 	exit                          = os.Exit
 )
 
-type logger struct {
+type logrusLogger struct {
 	*logrus.Logger
 }
 
-func (l *logger) Fields(fields map[string]interface{}) log.Logger {
-	// shall we need pool here?
-	// but logrus already has pool for its entry.
-	return &logger{logrus.WithFields(fields).Logger}
-}
-
-func (l *logger) Error(err error) log.Logger {
-	return &logger{logrus.WithError(err).Logger}
-}
-
-func (l *logger) Init(opts ...log.Option) error {
+func (l *logrusLogger) Init(opts ...logger.Option) error {
 	options := &Options{}
 	for _, o := range opts {
 		o(&options.Options)
@@ -43,12 +34,12 @@ func (l *logger) Init(opts ...log.Option) error {
 			formatter = f
 		}
 
-		l, ok := options.Context.Value(levelKey{}).(log.Level)
+		l, ok := options.Context.Value(levelKey{}).(logger.Level)
 		if ok {
-			lvl = convertToLogrusLevel(l)
+			lvl = loggerToLogrusLevel(l)
 		}
 
-		o, ok := options.Context.Value(outKey{}).(io.Writer)
+		o, ok := options.Context.Value(outputKey{}).(io.Writer)
 		if ok {
 			out = o
 		}
@@ -83,71 +74,89 @@ func (l *logger) Init(opts ...log.Option) error {
 	return nil
 }
 
-func (l *logger) SetLevel(level log.Level) {
-	l.Logger.SetLevel(convertToLogrusLevel(level))
+func (l *logrusLogger) SetLevel(level logger.Level) {
+	l.Logger.SetLevel(loggerToLogrusLevel(level))
 }
 
-func (l *logger) Level() log.Level {
-	return convertLevel(l.Logger.Level)
+func (l *logrusLogger) Level() logger.Level {
+	return logrusToLoggerLevel(l.Logger.Level)
 }
 
-func (l *logger) Log(level log.Level, args ...interface{}) {
-	l.Logger.Log(convertToLogrusLevel(level), args...)
-}
-
-func (l *logger) Logf(level log.Level, format string, args ...interface{}) {
-	l.Logger.Logf(convertToLogrusLevel(level), format, args...)
-}
-
-func (l *logger) String() string {
+func (l *logrusLogger) String() string {
 	return "logrus"
 }
 
+func (l *logrusLogger) Log(level logger.Level, template string, fmtArgs []interface{}, fields logger.Fields) {
+	var fld map[string]interface{} = fields
+
+	// Format with Sprint, Sprintf, or neither.
+	msg := template
+	if msg == "" && len(fmtArgs) > 0 {
+		msg = fmt.Sprint(fmtArgs...)
+	} else if msg != "" && len(fmtArgs) > 0 {
+		msg = fmt.Sprintf(template, fmtArgs...)
+	}
+
+	l.Logger.WithFields(fld).Log(loggerToLogrusLevel(level), msg)
+}
+func (l *logrusLogger) Error(level logger.Level, template string, fmtArgs []interface{}, err error) {
+
+	// Format with Sprint, Sprintf, or neither.
+	msg := template
+	if msg == "" && len(fmtArgs) > 0 {
+		msg = fmt.Sprint(fmtArgs...)
+	} else if msg != "" && len(fmtArgs) > 0 {
+		msg = fmt.Sprintf(template, fmtArgs...)
+	}
+
+	l.Logger.WithError(err).Log(loggerToLogrusLevel(level), msg)
+}
+
 // New builds a new logger based on options
-func New(opts ...log.Option) log.Logger {
-	l := &logger{}
+func NewLogger(opts ...logger.Option) logger.Logger {
+	l := &logrusLogger{}
 	_ = l.Init(opts...)
 	return l
 }
 
-func convertToLogrusLevel(level log.Level) logrus.Level {
+func loggerToLogrusLevel(level logger.Level) logrus.Level {
 	switch level {
-	case log.TraceLevel:
+	case logger.TraceLevel:
 		return logrus.TraceLevel
-	case log.DebugLevel:
+	case logger.DebugLevel:
 		return logrus.DebugLevel
-	case log.InfoLevel:
+	case logger.InfoLevel:
 		return logrus.InfoLevel
-	case log.WarnLevel:
+	case logger.WarnLevel:
 		return logrus.WarnLevel
-	case log.ErrorLevel:
+	case logger.ErrorLevel:
 		return logrus.ErrorLevel
-	case log.PanicLevel:
+	case logger.PanicLevel:
 		return logrus.PanicLevel
-	case log.FatalLevel:
+	case logger.FatalLevel:
 		return logrus.FatalLevel
 	default:
 		return logrus.InfoLevel
 	}
 }
 
-func convertLevel(level logrus.Level) log.Level {
+func logrusToLoggerLevel(level logrus.Level) logger.Level {
 	switch level {
 	case logrus.TraceLevel:
-		return log.TraceLevel
+		return logger.TraceLevel
 	case logrus.DebugLevel:
-		return log.DebugLevel
+		return logger.DebugLevel
 	case logrus.InfoLevel:
-		return log.InfoLevel
+		return logger.InfoLevel
 	case logrus.WarnLevel:
-		return log.WarnLevel
+		return logger.WarnLevel
 	case logrus.ErrorLevel:
-		return log.ErrorLevel
+		return logger.ErrorLevel
 	case logrus.PanicLevel:
-		return log.PanicLevel
+		return logger.PanicLevel
 	case logrus.FatalLevel:
-		return log.FatalLevel
+		return logger.FatalLevel
 	default:
-		return log.InfoLevel
+		return logger.InfoLevel
 	}
 }

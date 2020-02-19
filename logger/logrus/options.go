@@ -10,7 +10,7 @@ import (
 
 type formatterKey struct{}
 type levelKey struct{}
-type outKey struct{}
+type outputKey struct{}
 type hooksKey struct{}
 type reportCallerKey struct{}
 type exitKey struct{}
@@ -31,8 +31,8 @@ func WithLevel(lvl log.Level) log.Option {
 	return setOption(levelKey{}, lvl)
 }
 
-func WithOut(out io.Writer) log.Option {
-	return setOption(outKey{}, out)
+func WithOutput(out io.Writer) log.Option {
+	return setOption(outputKey{}, out)
 }
 
 func WithLevelHooks(hooks logrus.LevelHooks) log.Option {

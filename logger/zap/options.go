@@ -30,3 +30,15 @@ type levelKey struct{}
 func WithLevel(l logger.Level) logger.Option {
 	return setOption(levelKey{}, l)
 }
+
+type fieldsKey struct{}
+
+func WithFields(fields logger.Fields) logger.Option {
+	return setOption(fieldsKey{}, fields)
+}
+
+type namespaceKey struct{}
+
+func WithNamespace(namespace string) logger.Option {
+	return setOption(namespaceKey{}, namespace)
+}

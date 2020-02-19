@@ -44,7 +44,7 @@ func WithOutput(out io.Writer) logger.Option {
 
 type fieldsKey struct{}
 
-func WithFields(fields map[string]interface{}) logger.Option {
+func WithFields(fields logger.Fields) logger.Option {
 	return setOption(fieldsKey{}, fields)
 }
 

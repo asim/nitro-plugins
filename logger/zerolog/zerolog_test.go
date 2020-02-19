@@ -27,7 +27,7 @@ func ExampleWithOut() {
 
 	logger.Info("testing: Info")
 	logger.Infof("testing: %s", "Infof")
-	logger.Infow("testing: Infow", map[string]interface{}{
+	logger.Infow("testing: Infow", logger.Fields{
 		"sumo":  "demo",
 		"human": true,
 		"age":   99,
@@ -66,29 +66,28 @@ func TestWithDevelopmentMode(t *testing.T) {
 	logger.Infof("testing: %s", "DevelopmentMode")
 }
 
-func TestWithFields(t *testing.T) {
-	logger.SetGlobalLogger(NewLogger())
-
-	logger.Infow("testing: WithFields", map[string]interface{}{
-		"sumo":  "demo",
+func TestSubLoggerWithMoreFields(t *testing.T) {
+	l := NewLogger(WithFields(logger.Fields{
+		"component": "gorm",
+	}))
+	logger.SetGlobalLogger(l)
+	logger.Infow("testing: WithFields", logger.Fields{
+		"name":  "demo",
 		"human": true,
-		"age":   99,
+		"age":   77,
 	})
+	// Output:
+	// {"level":"info","component":"gorm","age":77,"human":true,"name":"demo","time":"2020-02-18T12:39:33-08:00","message":"testing: WithFields"}
 }
 
 func TestWithError(t *testing.T) {
-	l := NewLogger(WithFields(map[string]interface{}{
-		"name":  "sumo",
-		"age":   99,
-		"alive": true,
-	}))
+	logger.SetGlobalLogger(NewLogger())
 	err := errors.Wrap(errors.New("error message"), "from error")
-	logger.SetGlobalLogger(l)
 	logger.Error("test with error")
 	logger.Errorw("test with error", err)
 	// Output:
-	// {"level":"error","age":99,"alive":true,"name":"sumo","time":"2020-02-18T03:11:42-08:00","message":"test with error"}
-	// {"level":"error","age":99,"alive":true,"name":"sumo","stack":[{"func":"TestWithError","line":"86","source":"zerolog_test.go"},{"func":"tRunner","line":"909","source":"testing.go"},{"func":"goexit","line":"1357","source":"asm_amd64.s"}],"error":"from error: error message","time":"2020-02-18T03:11:42-08:00","message":"test with error"}
+	// {"level":"error","time":"2020-02-18T12:36:13-08:00","message":"test with error"}
+	// {"level":"error","stack":[{"func":"TestWithError","line":"85","source":"zerolog_test.go"},{"func":"tRunner","line":"909","source":"testing.go"},{"func":"goexit","line":"1357","source":"asm_amd64.s"}],"error":"from error: error message","time":"2020-02-18T12:36:13-08:00","message":"test with error"}
 }
 
 func TestWithHooks(t *testing.T) {

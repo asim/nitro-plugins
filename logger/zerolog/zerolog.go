@@ -36,7 +36,7 @@ func (l *zeroLogger) Init(opts ...logger.Option) error {
 	// The logging level the logger should log at.
 	// This defaults to 100 means not explicitly set by user
 	var level logger.Level = 100
-	var fields map[string]interface{}
+	var fields logger.Fields
 	var hooks []zerolog.Hook
 	var timeFormat string
 	// default Production (1)
@@ -59,7 +59,7 @@ func (l *zeroLogger) Init(opts ...logger.Option) error {
 	if hs, ok := options.Context.Value(hooksKey{}).([]zerolog.Hook); ok {
 		hooks = hs
 	}
-	if flds, ok := options.Context.Value(fieldsKey{}).(map[string]interface{}); ok {
+	if flds, ok := options.Context.Value(fieldsKey{}).(logger.Fields); ok {
 		fields = flds
 	}
 	if lvl, ok := options.Context.Value(levelKey{}).(logger.Level); ok {

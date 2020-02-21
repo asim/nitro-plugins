@@ -1,59 +1,46 @@
 package logrus
 
 import (
-	"context"
-	"io"
-
-	log "github.com/micro/go-micro/v2/logger"
 	"github.com/sirupsen/logrus"
+
+	"github.com/micro/go-micro/v2/logger"
 )
 
-type formatterKey struct{}
-type levelKey struct{}
-type outputKey struct{}
-type hooksKey struct{}
-type reportCallerKey struct{}
-type exitKey struct{}
-
 type Options struct {
-	log.Options
+	logger.Options
+	Formatter logrus.Formatter
+	Hooks     logrus.LevelHooks
+	// Flag for whether to log caller info (off by default)
+	ReportCaller bool
+	// Exit Function to call when FatalLevel log
+	ExitFunc func(int)
 }
 
-func WithTextTextFormatter(formatter *logrus.TextFormatter) log.Option {
-	return setOption(formatterKey{}, formatter)
+type formatterKey struct{}
+
+func WithTextTextFormatter(formatter *logrus.TextFormatter) logger.Option {
+	return logger.SetOption(formatterKey{}, formatter)
+}
+func WithJSONFormatter(formatter *logrus.JSONFormatter) logger.Option {
+	return logger.SetOption(formatterKey{}, formatter)
 }
 
-func WithJSONFormatter(formatter *logrus.JSONFormatter) log.Option {
-	return setOption(formatterKey{}, formatter)
+type hooksKey struct{}
+
+func WithLevelHooks(hooks logrus.LevelHooks) logger.Option {
+	return logger.SetOption(hooksKey{}, hooks)
 }
 
-func WithLevel(lvl log.Level) log.Option {
-	return setOption(levelKey{}, lvl)
-}
-
-func WithOutput(out io.Writer) log.Option {
-	return setOption(outputKey{}, out)
-}
-
-func WithLevelHooks(hooks logrus.LevelHooks) log.Option {
-	return setOption(hooksKey{}, hooks)
-}
+type reportCallerKey struct{}
 
 // warning to use this option. because logrus doest not open CallerDepth option
 // this will only print this package
-func WithReportCaller(reportCaller bool) log.Option {
-	return setOption(reportCallerKey{}, reportCaller)
+func ReportCaller() logger.Option {
+	return logger.SetOption(reportCallerKey{}, true)
 }
 
-func WithExitFunc(exit func(int)) log.Option {
-	return setOption(exitKey{}, exit)
-}
+type exitKey struct{}
 
-func setOption(k, v interface{}) log.Option {
-	return func(o *log.Options) {
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		o.Context = context.WithValue(o.Context, k, v)
-	}
+func WithExitFunc(exit func(int)) logger.Option {
+	return logger.SetOption(exitKey{}, exit)
 }

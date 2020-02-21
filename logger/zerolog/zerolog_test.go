@@ -1,7 +1,6 @@
 package zerolog
 
 import (
-	// "errors"
 	"errors"
 	"os"
 	"testing"
@@ -30,10 +29,10 @@ func TestWithOutput(t *testing.T) {
 func TestSetLevel(t *testing.T) {
 	logger.DefaultLogger = NewLogger()
 
-	logger.SetGlobalLevel(logger.DebugLevel)
+	logger.Init(logger.WithLevel(logger.DebugLevel))
 	logger.Logf(logger.DebugLevel, "test show debug: %s", "debug msg")
 
-	logger.SetGlobalLevel(logger.InfoLevel)
+	logger.Init(logger.WithLevel(logger.InfoLevel))
 	logger.Logf(logger.DebugLevel, "test non-show debug: %s", "debug msg")
 }
 
@@ -68,7 +67,7 @@ func TestWithFields(t *testing.T) {
 func TestWithError(t *testing.T) {
 	logger.DefaultLogger = NewLogger()
 
-	logger.Error(errors.New("I am Error")).Logf(logger.ErrorLevel, "testing: %s", "WithError")
+	logger.WithError(errors.New("I am Error")).Logf(logger.ErrorLevel, "testing: %s", "WithError")
 }
 
 func TestWithHooks(t *testing.T) {

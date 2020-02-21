@@ -36,9 +36,9 @@ func TestSetLevel(t *testing.T) {
 	}
 	logger.DefaultLogger = l
 
-	logger.SetGlobalLevel(logger.DebugLevel)
+	logger.Init(logger.WithLevel(logger.DebugLevel))
 	l.Logf(logger.DebugLevel, "test show debug: %s", "debug msg")
 
-	logger.SetGlobalLevel(logger.InfoLevel)
+	logger.Init(logger.WithLevel(logger.InfoLevel))
 	l.Logf(logger.DebugLevel, "test non-show debug: %s", "debug msg")
 }

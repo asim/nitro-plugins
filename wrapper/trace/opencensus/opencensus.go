@@ -27,15 +27,9 @@ type clientWrapper struct {
 }
 
 func injectTraceIntoCtx(ctx context.Context, span *trace.Span) context.Context {
-	md, ok := metadata.FromContext(ctx)
-	if !ok {
-		md = make(metadata.Metadata)
-	}
-
 	spanCtx := propagation.Binary(span.SpanContext())
-	md[TracePropagationField] = base64.RawStdEncoding.EncodeToString(spanCtx)
-
-	return metadata.NewContext(ctx, md)
+	metadata.Set(ctx, TracePropagationField, base64.RawStdEncoding.EncodeToString(spanCtx))
+	return ctx
 }
 
 // Call implements client.Client.Call.
@@ -77,12 +71,7 @@ func NewClientWrapper() client.Wrapper {
 }
 
 func getTraceFromCtx(ctx context.Context) *trace.SpanContext {
-	md, ok := metadata.FromContext(ctx)
-	if !ok {
-		md = make(metadata.Metadata)
-	}
-
-	encodedTraceCtx, ok := md[TracePropagationField]
+	encodedTraceCtx, ok := metadata.Get(ctx, TracePropagationField)
 	if !ok {
 		return nil
 	}

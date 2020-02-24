@@ -1,5 +1,5 @@
 name: Run tests
-on: [push, pull_request]
+on: [push]
 
 jobs:
 
@@ -19,14 +19,13 @@ jobs:
 
     - name: Get dependencies
       run: |
-        ./.travis/deps.sh
+        go get -v -t -d ./...
 
     - name: Run tests
       id: tests
       env:
         IN_TRAVIS_CI: yes
-        TRAVIS: yes
-      run: ./.travis/tests.sh
+      run: go test -v ./...
   
     - name: Notify of test failure
       if: failure()
@@ -49,4 +48,3 @@ jobs:
         SLACK_TITLE: Tests Passed
         SLACK_USERNAME: GitHub Actions
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-

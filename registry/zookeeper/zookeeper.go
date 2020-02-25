@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/micro/go-micro/v2/config/cmd"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/registry"
-	"github.com/micro/go-micro/v2/util/log"
 	"github.com/samuel/go-zookeeper/zk"
 
 	hash "github.com/mitchellh/hashstructure"
@@ -62,13 +62,13 @@ func configure(z *zookeeperRegistry, opts ...registry.Option) error {
 	// connect to zookeeper
 	c, _, err := zk.Connect(cAddrs, time.Second*z.options.Timeout)
 	if err != nil {
-		log.Logf(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
 	// create our prefix path
 	if err := createPath(prefix, []byte{}, c); err != nil {
-		log.Logf(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
@@ -300,13 +300,13 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 	// connect to zookeeper
 	c, _, err := zk.Connect(cAddrs, time.Second*options.Timeout)
 	if err != nil {
-		log.Logf(err.Error())
+		log.Error(err.Error())
 		return nil
 	}
 
 	// create our prefix path
 	if err := createPath(prefix, []byte{}, c); err != nil {
-		log.Logf(err.Error())
+		log.Error(err.Error())
 		return nil
 	}
 

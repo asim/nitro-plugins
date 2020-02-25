@@ -5,7 +5,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/micro/go-micro/v2/broker"
-	log "github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 )
 
 var (
@@ -52,7 +52,7 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 	for msg := range claim.Messages() {
 		var m broker.Message
 		if err := h.kopts.Codec.Unmarshal(msg.Value, &m); err != nil {
-			log.Logf("[kafka]: failed to unmarshal: %v\n", err)
+			log.Errorf("[kafka]: failed to unmarshal: %v\n", err)
 			continue
 		}
 

@@ -25,7 +25,7 @@ import (
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/codec/json"
 	"github.com/micro/go-micro/v2/config/cmd"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 )
 
 type mqttBroker struct {
@@ -219,12 +219,12 @@ func (m *mqttBroker) Subscribe(topic string, h broker.Handler, opts ...broker.Su
 	t := m.client.Subscribe(topic, 1, func(c mqtt.Client, mq mqtt.Message) {
 		var msg broker.Message
 		if err := m.opts.Codec.Unmarshal(mq.Payload(), &msg); err != nil {
-			log.Log(err)
+			log.Error(err)
 			return
 		}
 
 		if err := h(&mqttPub{topic: topic, msg: &msg}); err != nil {
-			log.Log(err)
+			log.Error(err)
 		}
 	})
 

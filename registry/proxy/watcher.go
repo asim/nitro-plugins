@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/registry"
-	"github.com/micro/go-micro/v2/util/log"
 )
 
 const (
@@ -33,7 +33,7 @@ func (w *watcher) ping() {
 			w.conn.SetWriteDeadline(time.Now().Add(writeDeadline))
 			err := w.conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
-				log.Logf("watcher error writing ping message: %v", err)
+				log.Errorf("watcher error writing ping message: %v", err)
 				return
 			}
 		case <-w.exit:
@@ -65,7 +65,7 @@ func (w *watcher) run() {
 	for {
 		var res *registry.Result
 		if err := w.conn.ReadJSON(&res); err != nil {
-			log.Logf("error unmarshaling result: %v", err)
+			log.Errorf("error unmarshaling result: %v", err)
 			return
 		}
 		select {

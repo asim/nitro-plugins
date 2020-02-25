@@ -7,10 +7,9 @@ import (
 	"fmt"
 
 	"github.com/micro/go-micro/v2/client"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/metadata"
 	"github.com/micro/go-micro/v2/server"
-	"github.com/micro/go-micro/v2/util/log"
-
 	"go.opencensus.io/trace"
 	"go.opencensus.io/trace/propagation"
 )
@@ -78,13 +77,13 @@ func getTraceFromCtx(ctx context.Context) *trace.SpanContext {
 
 	traceCtxBytes, err := base64.RawStdEncoding.DecodeString(encodedTraceCtx)
 	if err != nil {
-		log.Logf("Could not decode trace context: %s", err.Error())
+		log.Errorf("Could not decode trace context: %s", err.Error())
 		return nil
 	}
 
 	spanCtx, ok := propagation.FromBinary(traceCtxBytes)
 	if !ok {
-		log.Log("Could not decode trace context from binary")
+		log.Errorf("Could not decode trace context from binary")
 		return nil
 	}
 

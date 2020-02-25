@@ -15,9 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/sts"
+	log "github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/config/cmd"
-	"github.com/micro/go-micro/v2/util/log"
 )
 
 type sessClientKey struct{}
@@ -63,7 +63,7 @@ func init() {
 // run is designed to run as a goroutine and poll SQS for new messages. Note that it's possible to receive
 // more than one message from a single poll depending on the options configured for the plugin
 func (s *subscriber) run(hdlr broker.Handler) {
-	log.Logf("SQS subscription started. Queue:%s, URL: %s", s.queueName, s.URL)
+	log.Debugf("SQS subscription started. Queue:%s, URL: %s", s.queueName, s.URL)
 	for {
 		select {
 		case <-s.exit:
@@ -84,7 +84,7 @@ func (s *subscriber) run(hdlr broker.Handler) {
 
 			if err != nil {
 				time.Sleep(time.Second)
-				log.Logf("Error receiving SQS message: %s", err.Error())
+				log.Errorf("Error receiving SQS message: %s", err.Error())
 				continue
 			}
 
@@ -125,7 +125,7 @@ func (s *subscriber) getWaitSeconds() *int64 {
 }
 
 func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
-	log.Logf("Received SQS message: %d bytes", len(*msg.Body))
+	log.Debugf("Received SQS message: %d bytes", len(*msg.Body))
 	m := &broker.Message{
 		Header: buildMessageHeader(msg.MessageAttributes),
 		Body:   []byte(*msg.Body),
@@ -145,7 +145,7 @@ func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
 	if s.options.AutoAck {
 		err := p.Ack()
 		if err != nil {
-			log.Logf("Failed auto-acknowledge of message: %s", err.Error())
+			log.Errorf("Failed auto-acknowledge of message: %s", err.Error())
 		}
 	}
 }
@@ -323,7 +323,7 @@ func (b *awsServices) Publish(topic string, msg *broker.Message, opts ...broker.
 	}
 	input.MessageAttributes = copyMessageHeader(msg)
 
-	log.Logf("Publishing SNS message, %d bytes", len(msg.Body))
+	log.Debugf("Publishing SNS message, %d bytes", len(msg.Body))
 	if _, err := b.svcSns.Publish(input); err != nil {
 		return err
 	}

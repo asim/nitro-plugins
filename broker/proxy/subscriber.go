@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/micro/go-micro/v2/broker"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 )
 
 const (
@@ -55,7 +55,7 @@ func (s *subscriber) ping() {
 			s.conn.SetWriteDeadline(time.Now().Add(writeDeadline))
 			err := s.conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
-				log.Logf("subscriber error writing ping message: %v", err)
+				log.Errorf("subscriber error writing ping message: %v", err)
 				return
 			}
 		case <-s.exit:
@@ -93,14 +93,14 @@ func (s *subscriber) run() {
 		var msg *broker.Message
 		if err := json.Unmarshal(message, &msg); err != nil {
 			// do what?
-			log.Logf("subscriber error unmarshaling message: %v", err)
+			log.Errorf("subscriber error unmarshaling message: %v", err)
 			continue
 		}
 		if err := s.handler(&publication{
 			topic:   s.topic,
 			message: msg,
 		}); err != nil {
-			log.Logf("handler execution error: %v", err)
+			log.Errorf("handler execution error: %v", err)
 		}
 	}
 }

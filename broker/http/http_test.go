@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/debug/log/noop"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/memory"
-	"github.com/micro/go-micro/v2/util/log"
 )
 
 var (

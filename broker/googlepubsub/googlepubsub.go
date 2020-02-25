@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/config/cmd"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -157,7 +157,7 @@ func (b *pubsubBroker) Publish(topic string, msg *broker.Message, opts ...broker
 	if _, err = pr.Get(ctx); err != nil {
 		// create Topic if not exists
 		if status.Code(err) == codes.NotFound {
-			log.Logf("Topic not exists. creating Topic: %s", topic)
+			log.Infof("Topic not exists. creating Topic: %s", topic)
 			if t, err = b.client.CreateTopic(ctx, topic); err == nil {
 				_, err = t.Publish(ctx, m).Get(ctx)
 			}

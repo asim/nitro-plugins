@@ -13,7 +13,7 @@ import (
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/codec/json"
 	"github.com/micro/go-micro/v2/config/cmd"
-	log "github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 	stan "github.com/nats-io/stan.go"
 )
 
@@ -121,7 +121,7 @@ func setAddrs(addrs []string) []string {
 func (n *stanBroker) reconnectCB(c stan.Conn, err error) {
 	if n.connectRetry {
 		if err := n.connect(); err != nil {
-			log.Log(err.Error())
+			log.Error(err)
 		}
 	}
 }
@@ -176,10 +176,10 @@ func (n *stanBroker) connect() error {
 		case <-ticker.C:
 			err := fn()
 			if err == nil {
-				log.Logf("[stan]: successeful connected to %v", n.addrs)
+				log.Infof("[stan]: successeful connected to %v", n.addrs)
 				return nil
 			}
-			log.Logf("[stan]: failed to connect %v: %v\n", n.addrs, err)
+			log.Errorf("[stan]: failed to connect %v: %v\n", n.addrs, err)
 		}
 	}
 

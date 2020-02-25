@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/micro/cli/v2"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/micro/v2/plugin"
 
 	// prometheus metrics
@@ -46,7 +46,7 @@ func NewPlugin() plugin.Plugin {
 			switch provider {
 			case "prometheus":
 				metrics.Provider = prometheus.New()
-				log.Log("Loaded prometheus metrics at /metrics")
+				log.Info("Loaded prometheus metrics at /metrics")
 			}
 
 			return nil

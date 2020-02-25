@@ -15,9 +15,9 @@ import (
 	"github.com/micro/go-micro/v2/codec/jsonrpc"
 	"github.com/micro/go-micro/v2/codec/protorpc"
 	"github.com/micro/go-micro/v2/config/cmd"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/server"
-	"github.com/micro/go-micro/v2/util/log"
 )
 
 var (
@@ -165,7 +165,7 @@ func (h *httpServer) Register() error {
 	}
 
 	h.registerOnce.Do(func() {
-		log.Logf("Registering node: %s", opts.Name+"-"+opts.Id)
+		log.Infof("Registering node: %s", opts.Name+"-"+opts.Id)
 	})
 
 	if err := opts.Registry.Register(service, rOpts...); err != nil {
@@ -205,7 +205,7 @@ func (h *httpServer) Deregister() error {
 	opts := h.opts
 	h.Unlock()
 
-	log.Logf("Deregistering node: %s", opts.Name+"-"+opts.Id)
+	log.Infof("Deregistering node: %s", opts.Name+"-"+opts.Id)
 
 	service := serviceDef(opts)
 	if err := opts.Registry.Deregister(service); err != nil {
@@ -221,7 +221,7 @@ func (h *httpServer) Deregister() error {
 
 	for sb, subs := range h.subscribers {
 		for _, sub := range subs {
-			log.Logf("Unsubscribing from topic: %s", sub.Topic())
+			log.Infof("Unsubscribing from topic: %s", sub.Topic())
 			sub.Unsubscribe()
 		}
 		h.subscribers[sb] = nil
@@ -241,7 +241,7 @@ func (h *httpServer) Start() error {
 		return err
 	}
 
-	log.Logf("Listening on %s", ln.Addr().String())
+	log.Infof("Listening on %s", ln.Addr().String())
 
 	h.Lock()
 	h.opts.Address = ln.Addr().String()
@@ -281,7 +281,7 @@ func (h *httpServer) Start() error {
 			// register self on interval
 			case <-t.C:
 				if err := h.Register(); err != nil {
-					log.Log("Server register error: ", err)
+					log.Error("Server register error: ", err)
 				}
 			// wait for exit
 			case ch = <-h.exit:

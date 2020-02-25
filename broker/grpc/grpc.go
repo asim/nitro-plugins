@@ -17,10 +17,10 @@ import (
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/config/cmd"
 	merr "github.com/micro/go-micro/v2/errors"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/cache"
 	maddr "github.com/micro/go-micro/v2/util/addr"
-	"github.com/micro/go-micro/v2/util/log"
 	mnet "github.com/micro/go-micro/v2/util/net"
 	mls "github.com/micro/go-micro/v2/util/tls"
 	proto "github.com/micro/go-plugins/broker/grpc/v2/proto"
@@ -293,7 +293,7 @@ func (h *grpcBroker) Connect() error {
 		return err
 	}
 
-	log.Logf("[grpc] Broker Listening on %s", l.Addr().String())
+	log.Infof("[grpc] Broker Listening on %s", l.Addr().String())
 	addr := h.address
 	h.address = l.Addr().String()
 
@@ -431,13 +431,13 @@ func (h *grpcBroker) Publish(topic string, msg *broker.Message, opts ...broker.P
 		// dial grpc connection
 		c, err := grpc.Dial(node.Address, opts...)
 		if err != nil {
-			log.Logf(err.Error())
+			log.Errorf(err.Error())
 			return
 		}
 
 		defer func() {
 			if err := c.Close(); err != nil {
-				log.Logf(err.Error())
+				log.Errorf(err.Error())
 				return
 			}
 		}()
@@ -445,7 +445,7 @@ func (h *grpcBroker) Publish(topic string, msg *broker.Message, opts ...broker.P
 		// publish message
 		_, err = proto.NewBrokerClient(c).Publish(context.TODO(), m)
 		if err != nil {
-			log.Logf(err.Error())
+			log.Errorf(err.Error())
 			return
 		}
 	}

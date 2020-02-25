@@ -3,6 +3,7 @@ package geocode
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"testing"
@@ -11,11 +12,11 @@ import (
 func TestGeocode(t *testing.T) {
 	// skip on travis
 	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
-		return
+		t.Skip()
 	}
 	// skip on travis
 	if tr := os.Getenv("IN_TRAVIS_CI"); len(tr) > 0 {
-		return
+		t.Skip()
 	}
 
 	testData := []struct {
@@ -26,6 +27,12 @@ func TestGeocode(t *testing.T) {
 	}
 
 	command := Geocode()
+
+	_, err := exec.LookPath("fortune")
+	if err != nil {
+		t.Log("skip test as geocode not found")
+		t.Skip()
+	}
 
 	for _, d := range testData {
 		rsp, err := command.Exec("geocode", d.address)

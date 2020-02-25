@@ -1,5 +1,5 @@
 name: Run tests
-on: [push, pull_request]
+on: [push]
 
 jobs:
 
@@ -24,8 +24,8 @@ jobs:
     - name: Run tests
       id: tests
       env:
-        IN_TRAVIS_CI: yes
         TRAVIS: yes
+        IN_TRAVIS_CI: yes
       run: ./.travis/tests.sh
   
     - name: Notify of test failure

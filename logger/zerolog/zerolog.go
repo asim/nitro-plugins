@@ -56,6 +56,7 @@ func (l *zeroLogger) Init(opts ...logger.Option) error {
 	// RESET
 	zerolog.TimeFieldFormat = time.RFC3339
 	zerolog.ErrorStackMarshaler = nil
+	zerolog.CallerSkipFrameCount = 4
 
 	switch l.opts.Mode {
 	case Development:
@@ -89,10 +90,12 @@ func (l *zeroLogger) Init(opts ...logger.Option) error {
 		l.zLog = l.zLog.Level(loggerToZerologLevel(l.opts.Level))
 	}
 
-	// Adding hooks if exist
+	// Reporting caller
 	if l.opts.ReportCaller {
 		l.zLog = l.zLog.With().Caller().Logger()
 	}
+	
+	// Adding hooks if exist
 	for _, hook := range l.opts.Hooks {
 		l.zLog = l.zLog.Hook(hook)
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/micro/go-micro/v2/logger"
 )
 
-type entryLogger interface {
+type EntryLogger interface {
 	logrus.FieldLogger
 
 	Log(level logrus.Level, args ...interface{})
@@ -17,7 +17,7 @@ type entryLogger interface {
 }
 
 type logrusLogger struct {
-	Logger entryLogger
+	Logger EntryLogger
 	opts   Options
 }
 

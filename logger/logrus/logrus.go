@@ -69,13 +69,11 @@ func (l *logrusLogger) String() string {
 }
 
 func (l *logrusLogger) Fields(fields map[string]interface{}) logger.Logger {
-	// shall we need pool here?
-	// but logrus already has pool for its entry.
-	return &logrusLogger{logrus.WithFields(fields), l.opts}
+	return &logrusLogger{l.Logger.WithFields(fields), l.opts}
 }
 
 func (l *logrusLogger) Error(err error) logger.Logger {
-	return &logrusLogger{logrus.WithError(err), l.opts}
+	return &logrusLogger{l.Logger.WithError(err), l.opts}
 }
 
 func (l *logrusLogger) Log(level logger.Level, args ...interface{}) {

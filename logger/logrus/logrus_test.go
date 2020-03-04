@@ -1,6 +1,7 @@
 package logrus
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -20,10 +21,22 @@ func TestName(t *testing.T) {
 }
 
 func TestWithFields(t *testing.T) {
-	logger.DefaultLogger = NewLogger(logger.WithOutput(os.Stdout))
+	l := NewLogger(logger.WithOutput(os.Stdout)).Fields(map[string]interface{}{
+		"k1": "v1",
+		"k2": 123456,
+	})
+
+	logger.DefaultLogger = l
 
 	logger.Log(logger.InfoLevel, "testing: Info")
 	logger.Logf(logger.InfoLevel, "testing: %s", "Infof")
+}
+
+func TestWithError(t *testing.T) {
+	l := NewLogger().Error(errors.New("boom!"))
+	logger.DefaultLogger = l
+
+	logger.Log(logger.InfoLevel, "testing: error")
 }
 
 func TestJSON(t *testing.T) {

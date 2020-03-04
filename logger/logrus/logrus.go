@@ -9,9 +9,16 @@ import (
 	"github.com/micro/go-micro/v2/logger"
 )
 
+type entryLogger interface {
+	logrus.FieldLogger
+
+	Log(level logrus.Level, args ...interface{})
+	Logf(level logrus.Level, format string, args ...interface{})
+}
+
 type logrusLogger struct {
-	*logrus.Logger
-	opts Options
+	Logger entryLogger
+	opts   Options
 }
 
 func (l *logrusLogger) Init(opts ...logger.Option) error {
@@ -64,11 +71,11 @@ func (l *logrusLogger) String() string {
 func (l *logrusLogger) Fields(fields map[string]interface{}) logger.Logger {
 	// shall we need pool here?
 	// but logrus already has pool for its entry.
-	return &logrusLogger{logrus.WithFields(fields).Logger, l.opts}
+	return &logrusLogger{logrus.WithFields(fields), l.opts}
 }
 
 func (l *logrusLogger) Error(err error) logger.Logger {
-	return &logrusLogger{logrus.WithError(err).Logger, l.opts}
+	return &logrusLogger{logrus.WithError(err), l.opts}
 }
 
 func (l *logrusLogger) Log(level logger.Level, args ...interface{}) {

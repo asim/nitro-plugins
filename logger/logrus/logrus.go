@@ -15,6 +15,7 @@ type logrusLogger struct {
 }
 
 func (l *logrusLogger) Init(opts ...logger.Option) error {
+
 	for _, o := range opts {
 		o(&l.opts.Options)
 	}
@@ -35,14 +36,22 @@ func (l *logrusLogger) Init(opts ...logger.Option) error {
 	log := logrus.New() // defaults
 	if ll, ok := l.opts.Context.Value(logrusLoggerKey{}).(*logrus.Logger); ok {
 		log = ll
-	}
 
-	log.SetOutput(l.opts.Out)
-	log.SetFormatter(l.opts.Formatter)
-	log.ReplaceHooks(l.opts.Hooks)
-	log.SetLevel(loggerToLogrusLevel(l.opts.Level))
-	log.ExitFunc = l.opts.ExitFunc
-	log.SetReportCaller(l.opts.ReportCaller)
+		// overwrite default options
+		l.opts.Level = logrusToLoggerLevel(log.GetLevel())
+		l.opts.Out = log.Out
+		l.opts.Formatter = log.Formatter
+		l.opts.Hooks = log.Hooks
+		l.opts.ReportCaller = log.ReportCaller
+		l.opts.ExitFunc = log.ExitFunc
+	} else {
+		log.SetLevel(loggerToLogrusLevel(l.opts.Level))
+		log.SetOutput(l.opts.Out)
+		log.SetFormatter(l.opts.Formatter)
+		log.ReplaceHooks(l.opts.Hooks)
+		log.SetReportCaller(l.opts.ReportCaller)
+		log.ExitFunc = l.opts.ExitFunc
+	}
 
 	l.Logger = log
 

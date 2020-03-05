@@ -39,6 +39,23 @@ func TestWithError(t *testing.T) {
 	logger.Log(logger.InfoLevel, "testing: error")
 }
 
+func TestWithLogger(t *testing.T) {
+	l := NewLogger(WithLogger(logrus.StandardLogger())).Fields(map[string]interface{}{
+		"k1": "v1",
+		"k2": 123456,
+	})
+	logger.DefaultLogger = l
+
+	logger.Log(logger.InfoLevel, "testing: with *logrus.Logger")
+
+	el := NewLogger(WithLogger(logrus.NewEntry(logrus.StandardLogger()))).Fields(map[string]interface{}{
+		"k3": 3.456,
+		"k4": true,
+	})
+	logger.DefaultLogger = el
+	logger.Log(logger.InfoLevel, "testing: with *logrus.Entry")
+}
+
 func TestJSON(t *testing.T) {
 	logger.DefaultLogger = NewLogger(WithJSONFormatter(&logrus.JSONFormatter{}))
 

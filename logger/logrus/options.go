@@ -47,6 +47,6 @@ func WithExitFunc(exit func(int)) logger.Option {
 
 type logrusLoggerKey struct{}
 
-func WithLogger(l EntryLogger) logger.Option {
+func WithLogger(l logrus.StdLogger) logger.Option {
 	return logger.SetOption(logrusLoggerKey{}, l)
 }

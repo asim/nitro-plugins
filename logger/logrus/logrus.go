@@ -2,6 +2,7 @@ package logrus
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -9,15 +10,16 @@ import (
 	"github.com/micro/go-micro/v2/logger"
 )
 
-type EntryLogger interface {
-	logrus.FieldLogger
+type entryLogger interface {
+	WithFields(fields logrus.Fields) *logrus.Entry
+	WithError(err error) *logrus.Entry
 
 	Log(level logrus.Level, args ...interface{})
 	Logf(level logrus.Level, format string, args ...interface{})
 }
 
 type logrusLogger struct {
-	Logger EntryLogger
+	Logger entryLogger
 	opts   Options
 }
 
@@ -39,8 +41,8 @@ func (l *logrusLogger) Init(opts ...logger.Option) error {
 		l.opts.ExitFunc = exitFunction
 	}
 
-	log := logrus.New() // defaults
-	if ll, ok := l.opts.Context.Value(logrusLoggerKey{}).(*logrus.Logger); ok {
+	switch ll := l.opts.Context.Value(logrusLoggerKey{}).(type) {
+	case *logrus.Logger:
 		// overwrite default options
 		l.opts.Level = logrusToLoggerLevel(ll.GetLevel())
 		l.opts.Out = ll.Out
@@ -48,18 +50,29 @@ func (l *logrusLogger) Init(opts ...logger.Option) error {
 		l.opts.Hooks = ll.Hooks
 		l.opts.ReportCaller = ll.ReportCaller
 		l.opts.ExitFunc = ll.ExitFunc
-
-		log = ll
-	} else {
+		l.Logger = ll
+	case *logrus.Entry:
+		// overwrite default options
+		el := ll.Logger
+		l.opts.Level = logrusToLoggerLevel(el.GetLevel())
+		l.opts.Out = el.Out
+		l.opts.Formatter = el.Formatter
+		l.opts.Hooks = el.Hooks
+		l.opts.ReportCaller = el.ReportCaller
+		l.opts.ExitFunc = el.ExitFunc
+		l.Logger = ll
+	case nil:
+		log := logrus.New() // defaults
 		log.SetLevel(loggerToLogrusLevel(l.opts.Level))
 		log.SetOutput(l.opts.Out)
 		log.SetFormatter(l.opts.Formatter)
 		log.ReplaceHooks(l.opts.Hooks)
 		log.SetReportCaller(l.opts.ReportCaller)
 		log.ExitFunc = l.opts.ExitFunc
+		l.Logger = log
+	default:
+		return fmt.Errorf("invalid logrus type: %T", ll)
 	}
-
-	l.Logger = log
 
 	return nil
 }

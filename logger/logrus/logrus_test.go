@@ -40,14 +40,15 @@ func TestWithError(t *testing.T) {
 }
 
 func TestWithLogger(t *testing.T) {
+	// with *logrus.Logger
 	l := NewLogger(WithLogger(logrus.StandardLogger())).Fields(map[string]interface{}{
 		"k1": "v1",
 		"k2": 123456,
 	})
 	logger.DefaultLogger = l
-
 	logger.Log(logger.InfoLevel, "testing: with *logrus.Logger")
 
+	// with *logrus.Entry
 	el := NewLogger(WithLogger(logrus.NewEntry(logrus.StandardLogger()))).Fields(map[string]interface{}{
 		"k3": 3.456,
 		"k4": true,

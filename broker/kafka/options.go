@@ -51,16 +51,28 @@ func (*consumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { retu
 func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
 		var m broker.Message
+		p := &publication{m: &m, t: msg.Topic, km: msg, cg: h.cg, sess: sess}
+		eh := h.kopts.ErrorHandler
+
 		if err := h.kopts.Codec.Unmarshal(msg.Value, &m); err != nil {
-			log.Errorf("[kafka]: failed to unmarshal: %v\n", err)
+			p.err = err
+			p.m.Body = msg.Value
+			log.Errorf("[kafka]: failed to unmarshal: %v", err)
+			if eh != nil {
+				eh(p)
+			}
 			continue
 		}
 
-		err := h.handler(&publication{m: &m, t: msg.Topic, km: msg, cg: h.cg, sess: sess})
+		err := h.handler(p)
 		if err == nil && h.subopts.AutoAck {
 			sess.MarkMessage(msg, "")
 		} else if err != nil {
+			p.err = err
 			log.Errorf("[kafka]: subscriber error: %v", err)
+			if eh != nil {
+				eh(p)
+			}
 		}
 	}
 	return nil

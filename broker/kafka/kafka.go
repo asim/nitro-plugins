@@ -33,6 +33,7 @@ type subscriber struct {
 
 type publication struct {
 	t    string
+	err  error
 	cg   sarama.ConsumerGroup
 	km   *sarama.ConsumerMessage
 	m    *broker.Message
@@ -54,6 +55,10 @@ func (p *publication) Message() *broker.Message {
 func (p *publication) Ack() error {
 	p.sess.MarkMessage(p.km, "")
 	return nil
+}
+
+func (p *publication) Error() error {
+	return p.err
 }
 
 func (s *subscriber) Options() broker.SubscribeOptions {

@@ -43,6 +43,7 @@ type publication struct {
 	t   string
 	msg *stan.Msg
 	m   *broker.Message
+	err error
 }
 
 func init() {
@@ -59,6 +60,10 @@ func (n *publication) Message() *broker.Message {
 
 func (n *publication) Ack() error {
 	return n.msg.Ack()
+}
+
+func (n *publication) Error() error {
+	return n.err
 }
 
 func (n *subscriber) Options() broker.SubscribeOptions {
@@ -337,16 +342,18 @@ func (n *stanBroker) Subscribe(topic string, handler broker.Handler, opts ...bro
 
 	fn := func(msg *stan.Msg) {
 		var m broker.Message
+		p := &publication{m: &m, msg: msg, t: msg.Subject}
 
 		// unmarshal message
 		if err := n.opts.Codec.Unmarshal(msg.Data, &m); err != nil {
+			p.err = err
+			p.m.Body = msg.Data
 			return
 		}
-
 		// execute the handler
-		err := handler(&publication{m: &m, msg: msg, t: msg.Subject})
+		p.err = handler(p)
 		// if there's no error and success auto ack is enabled ack it
-		if err == nil && ackSuccess {
+		if p.err == nil && ackSuccess {
 			msg.Ack()
 		}
 	}

@@ -223,7 +223,9 @@ func (m *mqttBroker) Subscribe(topic string, h broker.Handler, opts ...broker.Su
 			return
 		}
 
-		if err := h(&mqttPub{topic: topic, msg: &msg}); err != nil {
+		p := &mqttPub{topic: topic, msg: &msg}
+		if err := h(p); err != nil {
+			p.err = err
 			log.Error(err)
 		}
 	})

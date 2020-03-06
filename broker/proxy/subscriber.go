@@ -96,10 +96,9 @@ func (s *subscriber) run() {
 			log.Errorf("subscriber error unmarshaling message: %v", err)
 			continue
 		}
-		if err := s.handler(&publication{
-			topic:   s.topic,
-			message: msg,
-		}); err != nil {
+		p := &publication{topic: s.topic, message: msg}
+		p.err = s.handler(p)
+		if p.err != nil {
 			log.Errorf("handler execution error: %v", err)
 		}
 	}

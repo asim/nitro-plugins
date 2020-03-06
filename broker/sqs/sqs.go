@@ -44,6 +44,7 @@ type publication struct {
 	m         *broker.Message
 	URL       string
 	queueName string
+	err       error
 }
 
 func init() {
@@ -133,8 +134,8 @@ func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
 			svc:       s.svc,
 		}
 
-		if err := hdlr(p); err != nil {
-			fmt.Println(err)
+		if p.err = hdlr(p); p.err != nil {
+			fmt.Println(p.err)
 		}
 		if s.options.AutoAck {
 			err := p.Ack()
@@ -163,6 +164,10 @@ func (s *subscriber) Unsubscribe() error {
 		close(s.exit)
 		return nil
 	}
+}
+
+func (p *publication) Error() error {
+	return p.err
 }
 
 func (p *publication) Ack() error {

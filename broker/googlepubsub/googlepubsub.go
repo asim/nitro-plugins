@@ -34,6 +34,7 @@ type publication struct {
 	pm    *pubsub.Message
 	m     *broker.Message
 	topic string
+	err   error
 }
 
 func init() {
@@ -73,7 +74,8 @@ func (s *subscriber) run(hdlr broker.Handler) {
 				}
 
 				// If the error is nil lets check if we should auto ack
-				if err := hdlr(p); err == nil {
+				p.err = hdlr(p)
+				if p.err == nil {
 					// auto ack?
 					if s.options.AutoAck {
 						p.Ack()
@@ -111,6 +113,10 @@ func (s *subscriber) Unsubscribe() error {
 func (p *publication) Ack() error {
 	p.pm.Ack()
 	return nil
+}
+
+func (p *publication) Error() error {
+	return p.err
 }
 
 func (p *publication) Topic() string {

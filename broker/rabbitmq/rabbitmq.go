@@ -36,9 +36,10 @@ type subscriber struct {
 }
 
 type publication struct {
-	d amqp.Delivery
-	m *broker.Message
-	t string
+	d   amqp.Delivery
+	m   *broker.Message
+	t   string
+	err error
 }
 
 func init() {
@@ -47,6 +48,10 @@ func init() {
 
 func (p *publication) Ack() error {
 	return p.d.Ack(false)
+}
+
+func (p *publication) Error() error {
+	return p.err
 }
 
 func (p *publication) Topic() string {
@@ -221,10 +226,11 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			Header: header,
 			Body:   msg.Body,
 		}
-		err := handler(&publication{d: msg, m: m, t: msg.RoutingKey})
-		if err == nil && ackSuccess && !opt.AutoAck {
+		p := &publication{d: msg, m: m, t: msg.RoutingKey}
+		p.err = handler(p)
+		if p.err == nil && ackSuccess && !opt.AutoAck {
 			msg.Ack(false)
-		} else if err != nil && !opt.AutoAck {
+		} else if p.err != nil && !opt.AutoAck {
 			msg.Nack(false, requeueOnError)
 		}
 	}

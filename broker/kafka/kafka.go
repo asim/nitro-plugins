@@ -21,8 +21,9 @@ type kBroker struct {
 
 	sc []sarama.Client
 
-	scMutex sync.Mutex
-	opts    broker.Options
+	connected bool
+	scMutex   sync.Mutex
+	opts      broker.Options
 }
 
 type subscriber struct {
@@ -81,9 +82,16 @@ func (k *kBroker) Address() string {
 }
 
 func (k *kBroker) Connect() error {
-	if k.c != nil {
+	if k.connected {
 		return nil
 	}
+
+	k.scMutex.Lock()
+	if k.c != nil {
+		k.scMutex.Unlock()
+		return nil
+	}
+	k.scMutex.Unlock()
 
 	pconfig := k.getBrokerConfig()
 	// For implementation reasons, the SyncProducer requires
@@ -97,17 +105,17 @@ func (k *kBroker) Connect() error {
 		return err
 	}
 
-	k.c = c
-
 	p, err := sarama.NewSyncProducerFromClient(c)
 	if err != nil {
 		return err
 	}
 
-	k.p = p
 	k.scMutex.Lock()
-	defer k.scMutex.Unlock()
+	k.c = c
+	k.p = p
 	k.sc = make([]sarama.Client, 0)
+	k.connected = true
+	defer k.scMutex.Unlock()
 
 	return nil
 }
@@ -120,7 +128,11 @@ func (k *kBroker) Disconnect() error {
 	}
 	k.sc = nil
 	k.p.Close()
-	return k.c.Close()
+	if err := k.c.Close(); err != nil {
+		return err
+	}
+	k.connected = false
+	return nil
 }
 
 func (k *kBroker) Init(opts ...broker.Option) error {

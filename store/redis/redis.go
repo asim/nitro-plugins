@@ -43,29 +43,25 @@ func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 	return records, nil
 }
 
-func (r *rkv) Delete(key string) error {
+func (r *rkv) Delete(key string, opts ...store.DeleteOption) error {
 	return r.Client.Del(key).Err()
 }
 
-func (r *rkv) Write(record *store.Record) error {
+func (r *rkv) Write(record *store.Record, opts ...store.WriteOption) error {
 	return r.Client.Set(record.Key, record.Value, record.Expiry).Err()
 }
 
-func (r *rkv) List() ([]*store.Record, error) {
+func (r *rkv) List(opts ...store.ListOption) ([]string, error) {
 	keys, err := r.Client.Keys("*").Result()
 	if err != nil {
 		return nil, err
 	}
 
-	vals := make([]*store.Record, 0, len(keys))
-	for _, k := range keys {
-		i, err := r.Read(k)
-		if err != nil {
-			return nil, err
-		}
-		vals = append(vals, i...)
-	}
-	return vals, nil
+	return keys, nil
+}
+
+func (r *rkv) Options() store.Options {
+	return r.options
 }
 
 func (r *rkv) String() string {

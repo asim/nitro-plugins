@@ -57,9 +57,10 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 		if err := h.kopts.Codec.Unmarshal(msg.Value, &m); err != nil {
 			p.err = err
 			p.m.Body = msg.Value
-			log.Errorf("[kafka]: failed to unmarshal: %v", err)
 			if eh != nil {
 				eh(p)
+			} else {
+				log.Errorf("[kafka]: failed to unmarshal: %v", err)
 			}
 			continue
 		}
@@ -69,9 +70,10 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 			sess.MarkMessage(msg, "")
 		} else if err != nil {
 			p.err = err
-			log.Errorf("[kafka]: subscriber error: %v", err)
 			if eh != nil {
 				eh(p)
+			} else {
+				log.Errorf("[kafka]: subscriber error: %v", err)
 			}
 		}
 	}

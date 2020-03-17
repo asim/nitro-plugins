@@ -18,6 +18,10 @@ func (c *ckv) Init(...store.Option) error {
 	return nil
 }
 
+func (c *ckv) Options() store.Options {
+	return c.options
+}
+
 func (c *ckv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error) {
 	// TODO: implement read options
 	records := make([]*store.Record, 0, 1)
@@ -39,12 +43,12 @@ func (c *ckv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 	return records, nil
 }
 
-func (c *ckv) Delete(key string) error {
+func (c *ckv) Delete(key string, opts ...store.DeleteOption) error {
 	_, err := c.client.KV().Delete(key, nil)
 	return err
 }
 
-func (c *ckv) Write(record *store.Record) error {
+func (c *ckv) Write(record *store.Record, opts ...store.WriteOption) error {
 	_, err := c.client.KV().Put(&api.KVPair{
 		Key:   record.Key,
 		Value: record.Value,
@@ -52,7 +56,7 @@ func (c *ckv) Write(record *store.Record) error {
 	return err
 }
 
-func (c *ckv) List() ([]*store.Record, error) {
+func (c *ckv) List(opts ...store.ListOption) ([]string, error) {
 	keyval, _, err := c.client.KV().List("/", nil)
 	if err != nil {
 		return nil, err
@@ -60,14 +64,11 @@ func (c *ckv) List() ([]*store.Record, error) {
 	if keyval == nil {
 		return nil, store.ErrNotFound
 	}
-	var vals []*store.Record
+	var keys []string
 	for _, keyv := range keyval {
-		vals = append(vals, &store.Record{
-			Key:   keyv.Key,
-			Value: keyv.Value,
-		})
+		keys = append(keys, keyv.Key)
 	}
-	return vals, nil
+	return keys, nil
 }
 
 func (c *ckv) String() string {

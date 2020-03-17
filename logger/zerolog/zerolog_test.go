@@ -67,7 +67,7 @@ func TestWithFields(t *testing.T) {
 func TestWithError(t *testing.T) {
 	logger.DefaultLogger = NewLogger()
 
-	logger.WithError(errors.New("I am Error")).Logf(logger.ErrorLevel, "testing: %s", "WithError")
+	logger.Fields(map[string]interface{}{"error": errors.New("I am Error")}).Logf(logger.ErrorLevel, "testing: %s", "WithError")
 }
 
 func TestWithHooks(t *testing.T) {

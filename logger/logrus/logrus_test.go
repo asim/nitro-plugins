@@ -33,7 +33,7 @@ func TestWithFields(t *testing.T) {
 }
 
 func TestWithError(t *testing.T) {
-	l := NewLogger().Error(errors.New("boom!"))
+	l := NewLogger().Fields(map[string]interface{}{"error": errors.New("boom!")})
 	logger.DefaultLogger = l
 
 	logger.Log(logger.InfoLevel, "testing: error")

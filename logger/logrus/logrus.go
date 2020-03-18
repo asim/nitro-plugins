@@ -85,10 +85,6 @@ func (l *logrusLogger) Fields(fields map[string]interface{}) logger.Logger {
 	return &logrusLogger{l.Logger.WithFields(fields), l.opts}
 }
 
-func (l *logrusLogger) Error(err error) logger.Logger {
-	return &logrusLogger{l.Logger.WithError(err), l.opts}
-}
-
 func (l *logrusLogger) Log(level logger.Level, args ...interface{}) {
 	l.Logger.Log(loggerToLogrusLevel(level), args...)
 }

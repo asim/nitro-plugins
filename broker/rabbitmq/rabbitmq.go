@@ -158,6 +158,10 @@ func (r *rbroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 		if value, ok := options.Context.Value(deliveryMode{}).(uint8); ok {
 			m.DeliveryMode = value
 		}
+
+		if value, ok := options.Context.Value(priorityKey{}).(uint8); ok {
+			m.Priority = value
+		}
 	}
 
 	for k, v := range msg.Header {

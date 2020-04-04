@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/config/cmd"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 )
 
 const (
@@ -44,6 +44,7 @@ type publication struct {
 	m         *broker.Message
 	URL       string
 	queueName string
+	err       error
 }
 
 func init() {
@@ -53,7 +54,7 @@ func init() {
 // run is designed to run as a goroutine and poll SQS for new messages. Note that it's possible to receive
 // more than one message from a single poll depending on the options configured for the plugin
 func (s *subscriber) run(hdlr broker.Handler) {
-	log.Log(fmt.Sprintf("SQS subscription started. Queue:%s, URL: %s", s.queueName, s.URL))
+	log.Infof("SQS subscription started. Queue:%s, URL: %s", s.queueName, s.URL)
 	for {
 		select {
 		case <-s.exit:
@@ -74,7 +75,7 @@ func (s *subscriber) run(hdlr broker.Handler) {
 
 			if err != nil {
 				time.Sleep(time.Second)
-				log.Log(fmt.Sprintf("Error receiving SQS message: %s", err.Error()))
+				log.Errorf("Error receiving SQS message: %s", err.Error())
 				continue
 			}
 
@@ -115,10 +116,10 @@ func (s *subscriber) getWaitSeconds() *int64 {
 }
 
 func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
-	log.Log(fmt.Sprintf("Received SQS message: %d bytes", len(*msg.Body)))
+	log.Infof("Received SQS message: %d bytes", len(*msg.Body))
 
 	if decodeBody, err := base64.StdEncoding.DecodeString(*msg.Body); err != nil {
-		log.Log(fmt.Sprintf("Failed to decode message body : %s", err.Error()))
+		log.Errorf("Failed to decode message body : %s", err.Error())
 	} else {
 		m := &broker.Message{
 			Header: buildMessageHeader(msg.MessageAttributes),
@@ -133,13 +134,13 @@ func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
 			svc:       s.svc,
 		}
 
-		if err := hdlr(p); err != nil {
-			fmt.Println(err)
+		if p.err = hdlr(p); p.err != nil {
+			fmt.Println(p.err)
 		}
 		if s.options.AutoAck {
 			err := p.Ack()
 			if err != nil {
-				log.Log(fmt.Sprintf("Failed auto-acknowledge of message: %s", err.Error()))
+				log.Errorf("Failed auto-acknowledge of message: %s", err.Error())
 			}
 		}
 
@@ -163,6 +164,10 @@ func (s *subscriber) Unsubscribe() error {
 		close(s.exit)
 		return nil
 	}
+}
+
+func (p *publication) Error() error {
+	return p.err
 }
 
 func (p *publication) Ack() error {
@@ -236,7 +241,7 @@ func (b *sqsBroker) Publish(queueName string, msg *broker.Message, opts ...broke
 	input.MessageDeduplicationId = b.generateDedupID(msg)
 	input.MessageGroupId = b.generateGroupID(msg)
 
-	log.Log(fmt.Sprintf("Publishing SQS message, %d bytes", len(msg.Body)))
+	log.Infof("Publishing SQS message, %d bytes", len(msg.Body))
 	_, err = b.svc.SendMessage(input)
 
 	if err != nil {

@@ -7,10 +7,9 @@ import (
 	"fmt"
 
 	"github.com/micro/go-micro/v2/client"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/metadata"
 	"github.com/micro/go-micro/v2/server"
-	"github.com/micro/go-micro/v2/util/log"
-
 	"go.opencensus.io/trace"
 	"go.opencensus.io/trace/propagation"
 )
@@ -27,15 +26,9 @@ type clientWrapper struct {
 }
 
 func injectTraceIntoCtx(ctx context.Context, span *trace.Span) context.Context {
-	md, ok := metadata.FromContext(ctx)
-	if !ok {
-		md = make(metadata.Metadata)
-	}
-
 	spanCtx := propagation.Binary(span.SpanContext())
-	md[TracePropagationField] = base64.RawStdEncoding.EncodeToString(spanCtx)
-
-	return metadata.NewContext(ctx, md)
+	metadata.Set(ctx, TracePropagationField, base64.RawStdEncoding.EncodeToString(spanCtx))
+	return ctx
 }
 
 // Call implements client.Client.Call.
@@ -77,25 +70,20 @@ func NewClientWrapper() client.Wrapper {
 }
 
 func getTraceFromCtx(ctx context.Context) *trace.SpanContext {
-	md, ok := metadata.FromContext(ctx)
-	if !ok {
-		md = make(metadata.Metadata)
-	}
-
-	encodedTraceCtx, ok := md[TracePropagationField]
+	encodedTraceCtx, ok := metadata.Get(ctx, TracePropagationField)
 	if !ok {
 		return nil
 	}
 
 	traceCtxBytes, err := base64.RawStdEncoding.DecodeString(encodedTraceCtx)
 	if err != nil {
-		log.Logf("Could not decode trace context: %s", err.Error())
+		log.Errorf("Could not decode trace context: %s", err.Error())
 		return nil
 	}
 
 	spanCtx, ok := propagation.FromBinary(traceCtxBytes)
 	if !ok {
-		log.Log("Could not decode trace context from binary")
+		log.Errorf("Could not decode trace context from binary")
 		return nil
 	}
 

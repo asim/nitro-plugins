@@ -13,7 +13,7 @@ import (
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/codec/json"
 	"github.com/micro/go-micro/v2/config/cmd"
-	log "github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 	stan "github.com/nats-io/stan.go"
 )
 
@@ -43,6 +43,7 @@ type publication struct {
 	t   string
 	msg *stan.Msg
 	m   *broker.Message
+	err error
 }
 
 func init() {
@@ -59,6 +60,10 @@ func (n *publication) Message() *broker.Message {
 
 func (n *publication) Ack() error {
 	return n.msg.Ack()
+}
+
+func (n *publication) Error() error {
+	return n.err
 }
 
 func (n *subscriber) Options() broker.SubscribeOptions {
@@ -121,7 +126,7 @@ func setAddrs(addrs []string) []string {
 func (n *stanBroker) reconnectCB(c stan.Conn, err error) {
 	if n.connectRetry {
 		if err := n.connect(); err != nil {
-			log.Log(err.Error())
+			log.Error(err)
 		}
 	}
 }
@@ -176,10 +181,10 @@ func (n *stanBroker) connect() error {
 		case <-ticker.C:
 			err := fn()
 			if err == nil {
-				log.Logf("[stan]: successeful connected to %v", n.addrs)
+				log.Infof("[stan]: successeful connected to %v", n.addrs)
 				return nil
 			}
-			log.Logf("[stan]: failed to connect %v: %v\n", n.addrs, err)
+			log.Errorf("[stan]: failed to connect %v: %v\n", n.addrs, err)
 		}
 	}
 
@@ -337,16 +342,18 @@ func (n *stanBroker) Subscribe(topic string, handler broker.Handler, opts ...bro
 
 	fn := func(msg *stan.Msg) {
 		var m broker.Message
+		p := &publication{m: &m, msg: msg, t: msg.Subject}
 
 		// unmarshal message
 		if err := n.opts.Codec.Unmarshal(msg.Data, &m); err != nil {
+			p.err = err
+			p.m.Body = msg.Data
 			return
 		}
-
 		// execute the handler
-		err := handler(&publication{m: &m, msg: msg, t: msg.Subject})
+		p.err = handler(p)
 		// if there's no error and success auto ack is enabled ack it
-		if err == nil && ackSuccess {
+		if p.err == nil && ackSuccess {
 			msg.Ack()
 		}
 	}

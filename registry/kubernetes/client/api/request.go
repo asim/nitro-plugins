@@ -27,7 +27,7 @@ type Request struct {
 	err error
 }
 
-// Params is the object to pass in to set paramaters
+// Params is the object to pass in to set parameters
 // on a request.
 type Params struct {
 	LabelSelector map[string]string
@@ -97,7 +97,7 @@ func (r *Request) Body(in interface{}) *Request {
 	return r
 }
 
-// Params isused to set paramters on a request
+// Params isused to set parameters on a request
 func (r *Request) Params(p *Params) *Request {
 	for k, v := range p.LabelSelector {
 		// create new key=value pair

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/micro/cli/v2"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/micro/v2/plugin"
 )
 
@@ -19,8 +19,8 @@ type whitelist struct {
 func (w *whitelist) Flags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
-			Name:   "ip_whitelist",
-			Usage:  "Comma separated whitelist of allowed IPs",
+			Name:    "ip_whitelist",
+			Usage:   "Comma separated whitelist of allowed IPs",
 			EnvVars: []string{"IP_WHITELIST"},
 		},
 	}

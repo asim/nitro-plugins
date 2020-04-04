@@ -5,7 +5,7 @@ import (
 
 	"github.com/micro/go-micro/v2/config/cmd"
 	"github.com/micro/go-micro/v2/config/source"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 	proto "github.com/micro/go-plugins/config/source/mucp/v2/proto"
 )
 

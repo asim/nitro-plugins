@@ -36,6 +36,10 @@ func newRegistry(opts ...registry.Option) registry.Registry {
 }
 
 func TestGossipRegistryBroadcast(t *testing.T) {
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		t.Skip()
+	}
+
 	mc1 := newMemberlistConfig()
 	r1 := newRegistry(Config(mc1), Address("127.0.0.1:54321"))
 
@@ -96,6 +100,10 @@ func TestGossipRegistryBroadcast(t *testing.T) {
 
 }
 func TestGossipRegistryRetry(t *testing.T) {
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		t.Skip()
+	}
+
 	mc1 := newMemberlistConfig()
 	r1 := newRegistry(Config(mc1), Address("127.0.0.1:54321"))
 
@@ -175,12 +183,6 @@ func TestGossipRegistryRetry(t *testing.T) {
 
 	if found {
 		t.Fatalf("[gossip registry] service.1 found in r2")
-	}
-
-	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
-		t.Logf("[gossip registry] skip test on travis")
-		t.Skip()
-		return
 	}
 
 	r1 = newRegistry(Config(mc1), Address("127.0.0.1:54321"))

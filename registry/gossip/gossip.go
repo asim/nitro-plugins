@@ -17,8 +17,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/memberlist"
 	"github.com/micro/go-micro/v2/config/cmd"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/registry"
-	log "github.com/micro/go-micro/v2/util/log"
 	pb "github.com/micro/go-plugins/registry/gossip/v2/proto"
 	"github.com/mitchellh/hashstructure"
 )
@@ -279,7 +279,7 @@ func configure(g *gossipRegistry, opts ...registry.Option) error {
 
 	g.Unlock()
 
-	log.Logf("[gossip] Registry Listening on %s", m.LocalNode().Address())
+	log.Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
 
 	// try connect
 	return g.connect(curAddrs)
@@ -297,7 +297,7 @@ func (b *broadcast) Message() []byte {
 		return nil
 	}
 	if l := len(up); l > MaxPacketSize {
-		log.Logf("[gossip] Registry broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
+		log.Infof("[gossip] Registry broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
 	}
 	return up
 }

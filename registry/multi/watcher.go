@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/micro/go-micro/v2/registry"
-	log "github.com/micro/go-micro/v2/util/log"
 )
 
 type multiWatcher struct {
@@ -60,7 +59,6 @@ func (mw *multiWatcher) Next() (*registry.Result, error) {
 			}
 			nr := &registry.Result{}
 			*nr = *r
-			log.Logf("next %#+v\n", nr)
 			return nr, nil
 		case <-mw.stop:
 			return nil, registry.ErrWatcherStopped

@@ -215,9 +215,10 @@ func (r *rbroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 					Header: stompHeaderToMap(msg.Header),
 					Body:   msg.Body,
 				}
+				p := &publication{msg: msg, m: m, topic: topic, broker: r}
 				// Handle the publication
-				err := handler(&publication{msg: msg, m: m, topic: topic, broker: r})
-				if err == nil && !bOpt.AutoAck && ackSuccess {
+				p.err = handler(p)
+				if p.err == nil && !bOpt.AutoAck && ackSuccess {
 					msg.Conn.Ack(msg)
 				}
 			}(msg)

@@ -1,10 +1,9 @@
-package logrus
+package apex
 
 import (
 	"testing"
 
 	log "github.com/micro/go-micro/v2/logger"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -12,7 +11,7 @@ var (
 )
 
 func TestName(t *testing.T) {
-	if l.String() != "logrus" {
+	if l.String() != "apex" {
 		t.Errorf("name is error %s", l.String())
 	}
 
@@ -24,7 +23,17 @@ func TestLogf(t *testing.T) {
 }
 
 func TestJSON(t *testing.T) {
-	l2 := New(WithJSONFormatter(&logrus.JSONFormatter{}))
+	l2 := New(WithJSONHandler())
+	l2.Logf(log.InfoLevel, "test logf: %s", "name")
+}
+
+func TestText(t *testing.T) {
+	l2 := New(WithTextHandler())
+	l2.Logf(log.InfoLevel, "test logf: %s", "name")
+}
+
+func TestCLI(t *testing.T) {
+	l2 := New(WithCLIHandler())
 	l2.Logf(log.InfoLevel, "test logf: %s", "name")
 }
 
@@ -34,9 +43,4 @@ func TestSetLevel(t *testing.T) {
 
 	l.SetLevel(log.InfoLevel)
 	l.Logf(log.DebugLevel, "test non-show debug: %s", "debug msg")
-}
-
-func TestReportCaller(t *testing.T) {
-	l2 := New(WithReportCaller(true))
-	l2.Logf(log.InfoLevel, "test logf: %s", "name")
 }

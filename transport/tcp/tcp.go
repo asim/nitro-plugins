@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/micro/go-micro/v2/config/cmd"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/transport"
 	maddr "github.com/micro/go-micro/v2/util/addr"
-	"github.com/micro/go-micro/v2/util/log"
 	mnet "github.com/micro/go-micro/v2/util/net"
 	mls "github.com/micro/go-micro/v2/util/tls"
 )
@@ -137,7 +137,7 @@ func (t *tcpTransportListener) Accept(fn func(transport.Socket)) error {
 				if max := 1 * time.Second; tempDelay > max {
 					tempDelay = max
 				}
-				log.Logf("http: Accept error: %v; retrying in %v\n", err, tempDelay)
+				log.Errorf("http: Accept error: %v; retrying in %v\n", err, tempDelay)
 				time.Sleep(tempDelay)
 				continue
 			}

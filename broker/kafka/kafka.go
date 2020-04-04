@@ -10,7 +10,7 @@ import (
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/codec/json"
 	"github.com/micro/go-micro/v2/config/cmd"
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 )
 
 type kBroker struct {
@@ -21,8 +21,9 @@ type kBroker struct {
 
 	sc []sarama.Client
 
-	scMutex sync.Mutex
-	opts    broker.Options
+	connected bool
+	scMutex   sync.Mutex
+	opts      broker.Options
 }
 
 type subscriber struct {
@@ -33,6 +34,7 @@ type subscriber struct {
 
 type publication struct {
 	t    string
+	err  error
 	cg   sarama.ConsumerGroup
 	km   *sarama.ConsumerMessage
 	m    *broker.Message
@@ -56,6 +58,10 @@ func (p *publication) Ack() error {
 	return nil
 }
 
+func (p *publication) Error() error {
+	return p.err
+}
+
 func (s *subscriber) Options() broker.SubscribeOptions {
 	return s.opts
 }
@@ -76,9 +82,16 @@ func (k *kBroker) Address() string {
 }
 
 func (k *kBroker) Connect() error {
-	if k.c != nil {
+	if k.connected {
 		return nil
 	}
+
+	k.scMutex.Lock()
+	if k.c != nil {
+		k.scMutex.Unlock()
+		return nil
+	}
+	k.scMutex.Unlock()
 
 	pconfig := k.getBrokerConfig()
 	// For implementation reasons, the SyncProducer requires
@@ -92,17 +105,17 @@ func (k *kBroker) Connect() error {
 		return err
 	}
 
-	k.c = c
-
 	p, err := sarama.NewSyncProducerFromClient(c)
 	if err != nil {
 		return err
 	}
 
-	k.p = p
 	k.scMutex.Lock()
-	defer k.scMutex.Unlock()
+	k.c = c
+	k.p = p
 	k.sc = make([]sarama.Client, 0)
+	k.connected = true
+	defer k.scMutex.Unlock()
 
 	return nil
 }
@@ -115,7 +128,11 @@ func (k *kBroker) Disconnect() error {
 	}
 	k.sc = nil
 	k.p.Close()
-	return k.c.Close()
+	if err := k.c.Close(); err != nil {
+		return err
+	}
+	k.connected = false
+	return nil
 }
 
 func (k *kBroker) Init(opts ...broker.Option) error {
@@ -194,17 +211,18 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			select {
 			case err := <-cg.Errors():
 				if err != nil {
-					log.Log("consumer error:", err)
+					log.Errorf("consumer error:", err)
 				}
 			default:
 				err := cg.Consume(ctx, topics, h)
-				if err != nil {
-					log.Log(err)
-				}
-				if err == sarama.ErrClosedConsumerGroup {
+				switch err {
+				case sarama.ErrClosedConsumerGroup:
 					return
+				case nil:
+					continue
+				default:
+					log.Error(err)
 				}
-
 			}
 		}
 	}()

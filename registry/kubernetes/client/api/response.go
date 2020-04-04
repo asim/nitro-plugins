@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/micro/go-micro/v2/util/log"
+	log "github.com/micro/go-micro/v2/logger"
 )
 
 // Errors ...
@@ -82,12 +82,12 @@ func newResponse(res *http.Response, err error) *Response {
 		return r
 	}
 
-	log.Logf("K8s: request failed with code %v", r.res.StatusCode)
+	log.Errorf("K8s: request failed with code %v", r.res.StatusCode)
 
 	b, err := ioutil.ReadAll(r.res.Body)
 	if err == nil {
-		log.Log("K8s: request failed with body:")
-		log.Log(string(b))
+		log.Error("K8s: request failed with body:")
+		log.Error(string(b))
 	}
 	r.err = ErrOther
 	return r

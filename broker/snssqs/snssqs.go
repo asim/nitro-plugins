@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/micro/go-micro/v2/broker"
 	"github.com/micro/go-micro/v2/config/cmd"
-	"github.com/micro/go-micro/v2/util/log"
+	"github.com/micro/go-micro/v2/logger"
 )
 
 type sessClientKey struct{}
@@ -54,6 +54,7 @@ type sqsEvent struct {
 	m         *broker.Message
 	URL       string
 	queueName string
+	err       error
 }
 
 func init() {
@@ -63,7 +64,7 @@ func init() {
 // run is designed to run as a goroutine and poll SQS for new messages. Note that it's possible to receive
 // more than one message from a single poll depending on the options configured for the plugin
 func (s *subscriber) run(hdlr broker.Handler) {
-	log.Logf("SQS subscription started. Queue:%s, URL: %s", s.queueName, s.URL)
+	logger.Debugf("SQS subscription started. Queue:%s, URL: %s", s.queueName, s.URL)
 	for {
 		select {
 		case <-s.exit:
@@ -84,7 +85,7 @@ func (s *subscriber) run(hdlr broker.Handler) {
 
 			if err != nil {
 				time.Sleep(time.Second)
-				log.Logf("Error receiving SQS message: %s", err.Error())
+				logger.Errorf("Error receiving SQS message: %s", err.Error())
 				continue
 			}
 
@@ -125,7 +126,7 @@ func (s *subscriber) getWaitSeconds() *int64 {
 }
 
 func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
-	log.Logf("Received SQS message: %d bytes", len(*msg.Body))
+	logger.Debugf("Received SQS message: %d bytes", len(*msg.Body))
 	m := &broker.Message{
 		Header: buildMessageHeader(msg.MessageAttributes),
 		Body:   []byte(*msg.Body),
@@ -139,13 +140,13 @@ func (s *subscriber) handleMessage(msg *sqs.Message, hdlr broker.Handler) {
 		svc:       s.svc,
 	}
 
-	if err := hdlr(p); err != nil {
-		fmt.Println(err)
+	if p.err = hdlr(p); p.err != nil {
+		fmt.Println(p.err)
 	}
 	if s.options.AutoAck {
 		err := p.Ack()
 		if err != nil {
-			log.Logf("Failed auto-acknowledge of message: %s", err.Error())
+			logger.Errorf("Failed auto-acknowledge of message: %s", err.Error())
 		}
 	}
 }
@@ -166,6 +167,10 @@ func (s *subscriber) Unsubscribe() error {
 		close(s.exit)
 		return nil
 	}
+}
+
+func (p *sqsEvent) Error() error {
+	return p.err
 }
 
 func (p *sqsEvent) Ack() error {
@@ -323,7 +328,7 @@ func (b *awsServices) Publish(topic string, msg *broker.Message, opts ...broker.
 	}
 	input.MessageAttributes = copyMessageHeader(msg)
 
-	log.Logf("Publishing SNS message, %d bytes", len(msg.Body))
+	logger.Debugf("Publishing SNS message, %d bytes", len(msg.Body))
 	if _, err := b.svcSns.Publish(input); err != nil {
 		return err
 	}

@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/micro/go-micro/v2/client/selector"
+	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/registry"
-	"github.com/micro/go-micro/v2/util/log"
 	"github.com/micro/go-plugins/registry/kubernetes/v2/client"
 	"github.com/micro/go-plugins/registry/kubernetes/v2/client/mock"
 )

@@ -23,6 +23,10 @@ func (m *mkv) Init(...store.Option) error {
 	return nil
 }
 
+func (m *mkv) Options() store.Options {
+	return m.options
+}
+
 func (m *mkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error) {
 	// TODO: implement read options
 	records := make([]*store.Record, 0, 1)
@@ -47,11 +51,11 @@ func (m *mkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 	return records, nil
 }
 
-func (m *mkv) Delete(key string) error {
+func (m *mkv) Delete(key string, opts ...store.DeleteOption) error {
 	return m.Client.Delete(key)
 }
 
-func (m *mkv) Write(record *store.Record) error {
+func (m *mkv) Write(record *store.Record, opts ...store.WriteOption) error {
 	return m.Client.Set(&mc.Item{
 		Key:        record.Key,
 		Value:      record.Value,
@@ -59,7 +63,7 @@ func (m *mkv) Write(record *store.Record) error {
 	})
 }
 
-func (m *mkv) List() ([]*store.Record, error) {
+func (m *mkv) List(opts ...store.ListOption) ([]string, error) {
 	// stats
 	// cachedump
 	// get keys
@@ -137,31 +141,7 @@ func (m *mkv) List() ([]*store.Record, error) {
 		return nil, err
 	}
 
-	var vals []*store.Record
-
-	// concurrent op
-	ch := make(chan []*store.Record, len(keys))
-
-	for _, k := range keys {
-		go func(key string) {
-			i, _ := m.Read(key)
-			ch <- i
-		}(k)
-	}
-
-	for i := 0; i < len(keys); i++ {
-		records := <-ch
-
-		if records == nil {
-			continue
-		}
-
-		vals = append(vals, records...)
-	}
-
-	close(ch)
-
-	return vals, nil
+	return keys, nil
 }
 
 func (m *mkv) String() string {

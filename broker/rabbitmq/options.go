@@ -14,6 +14,7 @@ type prefetchGlobalKey struct{}
 type exchangeKey struct{}
 type requeueOnErrorKey struct{}
 type deliveryMode struct{}
+type priorityKey struct{}
 type externalAuth struct{}
 type durableExchange struct{}
 
@@ -60,6 +61,11 @@ func PrefetchGlobal() broker.Option {
 // DeliveryMode sets a delivery mode for publishing
 func DeliveryMode(value uint8) broker.PublishOption {
 	return setPublishOption(deliveryMode{}, value)
+}
+
+// Priority sets a priority level for publishing
+func Priority(value uint8) broker.PublishOption {
+	return setPublishOption(priorityKey{}, value)
 }
 
 func ExternalAuth() broker.Option {

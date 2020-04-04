@@ -1,67 +1,66 @@
-package zero
+package zerolog
 
 import (
-	"context"
-	"io"
+	"github.com/rs/zerolog"
 
 	"github.com/micro/go-micro/v2/logger"
-	"github.com/rs/zerolog"
 )
-
-type formatterKey struct{}
-type levelKey struct{}
-type levelFieldKey struct{}
-type outKey struct{}
-type hooksKey struct{}
-type reportCallerKey struct{}
-type exitKey struct{}
-type prettyKey struct{}
-type useColorKey struct{}
 
 type Options struct {
 	logger.Options
+
+	// Flag for whether to log caller info (off by default)
+	ReportCaller bool
+	// Use this logger as system wide default logger  (off by default)
+	UseAsDefault bool
+	// zerolog hooks
+	Hooks []zerolog.Hook
+	// TimeFormat is one of time.RFC3339, time.RFC3339Nano, time.*
+	TimeFormat string
+	// Runtime mode. (Production by default)
+	Mode Mode
+	// Exit Function to call when FatalLevel log
+	ExitFunc func(int)
 }
 
-func WithTimeFieldFormat(formatter zerolog.Formatter) logger.Option {
-	return setOption(formatterKey{}, formatter)
+type reportCallerKey struct{}
+
+func ReportCaller() logger.Option {
+	return logger.SetOption(reportCallerKey{}, true)
 }
 
-func WithLevelFieldName(levelFieldName string) logger.Option {
-	return setOption(levelFieldKey{}, levelFieldName)
+type useAsDefaultKey struct{}
+
+func UseAsDefault() logger.Option {
+	return logger.SetOption(useAsDefaultKey{}, true)
 }
 
-func WithPretty(pretty bool) logger.Option {
-	return setOption(prettyKey{}, pretty)
-}
-func WithColor(useColor bool) logger.Option {
-	return setOption(useColorKey{}, useColor)
+type developmentModeKey struct{}
+
+func WithDevelopmentMode() logger.Option {
+	return logger.SetOption(developmentModeKey{}, true)
 }
 
-func WithLevel(lvl logger.Level) logger.Option {
-	return setOption(levelKey{}, lvl)
+type productionModeKey struct{}
+
+func WithProductionMode() logger.Option {
+	return logger.SetOption(productionModeKey{}, true)
 }
 
-func WithOut(out io.Writer) logger.Option {
-	return setOption(outKey{}, out)
+type timeFormatKey struct{}
+
+func WithTimeFormat(timeFormat string) logger.Option {
+	return logger.SetOption(timeFormatKey{}, timeFormat)
 }
+
+type hooksKey struct{}
 
 func WithHooks(hooks []zerolog.Hook) logger.Option {
-	return setOption(hooksKey{}, hooks)
+	return logger.SetOption(hooksKey{}, hooks)
 }
 
-func WithReportCaller(reportCaller bool) logger.Option {
-	return setOption(reportCallerKey{}, reportCaller)
-}
+type exitKey struct{}
 
 func WithExitFunc(exit func(int)) logger.Option {
-	return setOption(exitKey{}, exit)
-}
-
-func setOption(k, v interface{}) logger.Option {
-	return func(o *logger.Options) {
-		if o.Context == nil {
-			o.Context = context.Background()
-		}
-		o.Context = context.WithValue(o.Context, k, v)
-	}
+	return logger.SetOption(exitKey{}, exit)
 }

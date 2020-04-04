@@ -65,8 +65,9 @@ type httpSubscriber struct {
 }
 
 type httpEvent struct {
-	m *broker.Message
-	t string
+	m   *broker.Message
+	t   string
+	err error
 }
 
 var (
@@ -158,6 +159,10 @@ func newHttpBroker(opts ...broker.Option) broker.Broker {
 
 func (h *httpEvent) Ack() error {
 	return nil
+}
+
+func (h *httpEvent) Error() error {
+	return h.err
 }
 
 func (h *httpEvent) Message() *broker.Message {
@@ -342,7 +347,7 @@ func (h *httpBroker) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// execute the handler
 	for _, fn := range subs {
-		fn(p)
+		p.err = fn(p)
 	}
 }
 

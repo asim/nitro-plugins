@@ -1,6 +1,7 @@
 package segmentio
 
 import (
+	"os"
 	"testing"
 
 	"github.com/micro/go-micro/v2/broker"
@@ -15,7 +16,10 @@ var (
 )
 
 func TestPublish(t *testing.T) {
-	b := NewBroker(broker.Addrs("172.18.0.121:9092"))
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		t.Skip()
+	}
+	b := NewBroker(broker.Addrs("127.0.0.1:9092"))
 	if err := b.Connect(); err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +50,10 @@ func TestPublish(t *testing.T) {
 }
 
 func BenchmarkSegmentioPublish(b *testing.B) {
-	brk := NewBroker(broker.Addrs("172.18.0.121:9092"))
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		b.Skip()
+	}
+	brk := NewBroker(broker.Addrs("127.0.0.1:9092"))
 	if err := brk.Connect(); err != nil {
 		b.Fatal(err)
 	}
@@ -67,7 +74,10 @@ func BenchmarkSegmentioPublish(b *testing.B) {
 }
 
 func BenchmarkSegmentioSubscribe(b *testing.B) {
-	brk := NewBroker(broker.Addrs("172.18.0.121:9092"))
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		b.Skip()
+	}
+	brk := NewBroker(broker.Addrs("127.0.0.1:9092"))
 	if err := brk.Connect(); err != nil {
 		b.Fatal(err)
 	}
@@ -109,7 +119,10 @@ func BenchmarkSegmentioSubscribe(b *testing.B) {
 }
 
 func BenchmarkSaramaPublish(b *testing.B) {
-	brk := sarama.NewBroker(broker.Addrs("172.18.0.121:9092"))
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		b.Skip()
+	}
+	brk := sarama.NewBroker(broker.Addrs("127.0.0.1:9092"))
 	if err := brk.Connect(); err != nil {
 		b.Fatal(err)
 	}
@@ -130,7 +143,10 @@ func BenchmarkSaramaPublish(b *testing.B) {
 }
 
 func BenchmarkSaramaSubscribe(b *testing.B) {
-	brk := sarama.NewBroker(broker.Addrs("172.18.0.121:9092"))
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		b.Skip()
+	}
+	brk := sarama.NewBroker(broker.Addrs("127.0.0.1:9092"))
 	if err := brk.Connect(); err != nil {
 		b.Fatal(err)
 	}

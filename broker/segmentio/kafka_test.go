@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/micro/go-micro/v2/broker"
-	sarama "github.com/micro/go-plugins/broker/kafka/v2"
 )
 
 var (
@@ -118,6 +117,7 @@ func BenchmarkSegmentioSubscribe(b *testing.B) {
 	<-done
 }
 
+/*
 func BenchmarkSaramaPublish(b *testing.B) {
 	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
 		b.Skip()
@@ -141,6 +141,7 @@ func BenchmarkSaramaPublish(b *testing.B) {
 	}
 
 }
+
 
 func BenchmarkSaramaSubscribe(b *testing.B) {
 	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
@@ -188,3 +189,4 @@ func BenchmarkSaramaSubscribe(b *testing.B) {
 
 	<-done
 }
+*/

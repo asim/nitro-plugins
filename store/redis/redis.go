@@ -14,6 +14,10 @@ func (r *rkv) Init(...store.Option) error {
 	return nil
 }
 
+func (r *rkv) Close() error {
+	return r.Client.Close()
+}
+
 func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error) {
 	records := make([]*store.Record, 0, 1)
 

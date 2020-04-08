@@ -41,6 +41,10 @@ func (s *sqlStore) Options() store.Options {
 	return s.options
 }
 
+func (s *sqlStore) Close() error {
+	return s.db.Close()
+}
+
 // List all the known records
 func (s *sqlStore) List(opts ...store.ListOption) ([]string, error) {
 	rows, err := s.db.Query(fmt.Sprintf("SELECT `key`, value, expiry FROM %s.%s;", s.database, s.table))

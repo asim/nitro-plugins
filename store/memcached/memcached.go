@@ -27,6 +27,11 @@ func (m *mkv) Options() store.Options {
 	return m.options
 }
 
+func (m *mkv) Close() error {
+	// memcaced does not supports close?
+	return nil
+}
+
 func (m *mkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error) {
 	// TODO: implement read options
 	records := make([]*store.Record, 0, 1)

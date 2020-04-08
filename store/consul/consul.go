@@ -43,6 +43,11 @@ func (c *ckv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 	return records, nil
 }
 
+func (c *ckv) Close() error {
+	// consul does not support close?
+	return nil
+}
+
 func (c *ckv) Delete(key string, opts ...store.DeleteOption) error {
 	_, err := c.client.KV().Delete(key, nil)
 	return err

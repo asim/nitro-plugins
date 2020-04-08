@@ -1,8 +1,10 @@
 package redis
 
 import (
+	"fmt"
+
 	"github.com/micro/go-micro/v2/store"
-	redis "gopkg.in/redis.v3"
+	redis "gopkg.in/redis.v5"
 )
 
 type rkv struct {
@@ -21,7 +23,8 @@ func (r *rkv) Close() error {
 func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error) {
 	records := make([]*store.Record, 0, 1)
 
-	val, err := r.Client.Get(key).Bytes()
+	rkey := fmt.Sprintf("%s%s", r.options.Table, key)
+	val, err := r.Client.Get(rkey).Bytes()
 
 	if err != nil && err == redis.Nil {
 		return nil, store.ErrNotFound
@@ -33,7 +36,7 @@ func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 		return nil, store.ErrNotFound
 	}
 
-	d, err := r.Client.TTL(key).Result()
+	d, err := r.Client.TTL(rkey).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +51,13 @@ func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 }
 
 func (r *rkv) Delete(key string, opts ...store.DeleteOption) error {
-	return r.Client.Del(key).Err()
+	rkey := fmt.Sprintf("%s%s", r.options.Table, key)
+	return r.Client.Del(rkey).Err()
 }
 
 func (r *rkv) Write(record *store.Record, opts ...store.WriteOption) error {
-	return r.Client.Set(record.Key, record.Value, record.Expiry).Err()
+	rkey := fmt.Sprintf("%s%s", r.options.Table, record.Key)
+	return r.Client.Set(rkey, record.Value, record.Expiry).Err()
 }
 
 func (r *rkv) List(opts ...store.ListOption) ([]string, error) {

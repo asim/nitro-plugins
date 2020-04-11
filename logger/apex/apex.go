@@ -11,19 +11,20 @@ var (
 
 type logger struct {
 	apexLog.Interface
+	opts Options
 }
 
 // Fields set fields to always be logged
-func (l logger) Fields(fields ...log.Field) log.Logger {
+func (l *logger) Fields(fields map[string]interface{}) log.Logger {
 	data := make(apexLog.Fields, len(fields))
-	for _, f := range fields {
-		data[f.Key] = f.GetValue()
+	for k, v := range fields {
+		data[k] = v
 	}
 	return newLogger(l.WithFields(data))
 }
 
 // Init initializes options
-func (l logger) Init(opts ...log.Option) error {
+func (l *logger) Init(opts ...log.Option) error {
 	options := &Options{}
 	for _, o := range opts {
 		o(&options.Options)
@@ -36,20 +37,19 @@ func (l logger) Init(opts ...log.Option) error {
 		}
 
 		if lvl, ok := options.Context.Value(levelKey{}).(log.Level); ok {
-			l.SetLevel(lvl)
+			l.setLogLevel(lvl)
 		}
 	}
 
 	return nil
 }
 
-// Level returns the logging level
-func (l logger) Level() log.Level {
-	return lvl
+func (l *logger) Options() log.Options {
+	// FIXME: How to return full opts?
+	return l.opts.Options
 }
 
-// SetLevel updates the logging level.
-func (l logger) SetLevel(level log.Level) {
+func (l *logger) setLogLevel(level log.Level) {
 	lvl = level
 	apexLog.SetLevel(convertToApexLevel(level))
 }
@@ -57,13 +57,13 @@ func (l logger) SetLevel(level log.Level) {
 // Log inserts a log entry.  Arguments may be handled in the manner
 // of fmt.Print, but the underlying logger may also decide to handle
 // them differently.
-func (l logger) Log(level log.Level, v ...interface{}) {
+func (l *logger) Log(level log.Level, v ...interface{}) {
 	l.Logf(level, "%s", v)
 }
 
 // Logf insets a log entry.  Arguments are handled in the manner of
 // fmt.Printf.
-func (l logger) Logf(level log.Level, format string, v ...interface{}) {
+func (l *logger) Logf(level log.Level, format string, v ...interface{}) {
 	apexlevel := convertToApexLevel(level)
 	switch apexlevel {
 	case apexLog.FatalLevel:
@@ -80,13 +80,18 @@ func (l logger) Logf(level log.Level, format string, v ...interface{}) {
 }
 
 // String returns the name of logger
-func (l logger) String() string {
+func (l *logger) String() string {
 	return "apex"
 }
 
 func newLogger(logInstance apexLog.Interface) log.Logger {
 	return &logger{
 		logInstance,
+		Options{
+			log.Options{
+				Level: log.InfoLevel,
+			},
+		},
 	}
 }
 
@@ -109,6 +114,8 @@ func convertToApexLevel(level log.Level) apexLog.Level {
 		return apexLog.ErrorLevel
 	case log.FatalLevel:
 		return apexLog.FatalLevel
+	case log.TraceLevel:
+		return apexLog.DebugLevel
 	default:
 		return apexLog.InfoLevel
 	}

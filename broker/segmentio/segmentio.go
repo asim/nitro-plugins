@@ -109,6 +109,8 @@ func (k *kBroker) Connect() error {
 
 	k.Lock()
 	k.addrs = kaddrs
+	k.readerConfig.Brokers = k.addrs
+	k.writerConfig.Brokers = k.addrs
 	k.connected = true
 	k.Unlock()
 

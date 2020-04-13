@@ -2,17 +2,17 @@
 package json
 
 import (
-	//	stdjson "encoding/json"
+	stdjson "encoding/json"
 	"io"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/micro/go-micro/v2/codec"
 	segjson "github.com/segmentio/encoding/json"
 )
 
 type Codec struct {
-	Conn io.ReadWriteCloser
-	//StdEncoder *stdjson.Encoder
-	//StdDecoder *stdjson.Decoder
+	Conn       io.ReadWriteCloser
+	StdDecoder *stdjson.Decoder
 	SegEncoder *segjson.Encoder
 	SegDecoder *segjson.Decoder
 }
@@ -25,9 +25,9 @@ func (c *Codec) ReadBody(b interface{}) error {
 	if b == nil {
 		return nil
 	}
-	//if pb, ok := b.(proto.Message); ok {
-	//	return jsonpb.UnmarshalNext(c.StdDecoder, pb)
-	//}
+	if pb, ok := b.(proto.Message); ok {
+		return jsonpbUnmarshaler.UnmarshalNext(c.StdDecoder, pb)
+	}
 	return c.SegDecoder.Decode(b)
 }
 
@@ -51,16 +51,11 @@ func NewCodec(conn io.ReadWriteCloser) codec.Codec {
 		Conn:       conn,
 		SegDecoder: segjson.NewDecoder(conn),
 		SegEncoder: segjson.NewEncoder(conn),
-		//		StdDecoder: stdjson.NewDecoder(conn),
-		//		StdEncoder: stdjson.NewEncoder(conn),
+		StdDecoder: stdjson.NewDecoder(conn),
 	}
 	c.SegEncoder.SetEscapeHTML(false)
 	c.SegEncoder.SetSortMapKeys(false)
 	c.SegDecoder.ZeroCopy()
-	//c.SegDecoder.DontCopyNumber()
-	//c.SegDecoder.DontCopyRawMessage()
-	//c.SegDecoder.DontCopyString()
-	//c.SegDecoder.DontMatchCaseInsensitiveStructFields()
 
 	return c
 }

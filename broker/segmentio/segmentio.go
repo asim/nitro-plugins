@@ -21,7 +21,6 @@ type kBroker struct {
 	writerConfig kafka.WriterConfig
 
 	writers map[string]*kafka.Writer
-	readers map[string]*kafka.Reader
 
 	connected bool
 	sync.RWMutex
@@ -126,11 +125,6 @@ func (k *kBroker) Disconnect() error {
 
 	k.Lock()
 	defer k.Unlock()
-	for _, reader := range k.readers {
-		if err := reader.Close(); err != nil {
-			return err
-		}
-	}
 	for _, writer := range k.writers {
 		if err := writer.Close(); err != nil {
 			return err
@@ -231,12 +225,10 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 
 				gen.Start(func(ctx context.Context) {
 					// create reader for this partition.
-					reader := kafka.NewReader(kafka.ReaderConfig{
-						//GroupID: gen.GroupID,
-						Brokers:   gcfg.Brokers,
-						Topic:     topic,
-						Partition: partition,
-					})
+					cfg := k.readerConfig
+					cfg.Topic = topic
+					cfg.Partition = partition
+					reader := kafka.NewReader(cfg)
 					defer reader.Close()
 					// seek to the last committed offset for this partition.
 					reader.SetOffset(offset)
@@ -325,7 +317,7 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 	}
 	readerConfig.WatchPartitionChanges = true
 
-	writerConfig := kafka.WriterConfig{}
+	writerConfig := kafka.WriterConfig{CompressionCodec: nil}
 	if cfg, ok := options.Context.Value(writerConfigKey{}).(kafka.WriterConfig); ok {
 		writerConfig = cfg
 	}
@@ -338,7 +330,6 @@ func NewBroker(opts ...broker.Option) broker.Broker {
 		readerConfig: readerConfig,
 		writerConfig: writerConfig,
 		writers:      make(map[string]*kafka.Writer),
-		readers:      make(map[string]*kafka.Reader),
 		addrs:        cAddrs,
 		opts:         options,
 	}

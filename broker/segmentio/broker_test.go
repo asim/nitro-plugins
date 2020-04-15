@@ -53,7 +53,6 @@ func TestPubSub(t *testing.T) {
 			t.Fatal(err)
 		}
 	}()
-
 	if err := b.Publish("test_topic", bm); err != nil {
 		t.Fatal(err)
 	}

@@ -208,17 +208,20 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 
 	sub := &subscriber{group: group, opts: opt, t: topic}
 
+	chErr := make(chan error)
+
 	go func() {
 		for {
 			gen, err := group.Next(k.opts.Context)
 			if err == kafka.ErrGroupClosed {
+				chErr <- nil
 				return
 			} else if err != nil {
-				if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
-					logger.Errorf("[kafka] subscribe error: %v", err)
-				}
+				chErr <- err
 				return
 			}
+			chErr <- nil
+
 			assignments := gen.Assignments[topic]
 			for _, assignment := range assignments {
 				partition, offset := assignment.ID, assignment.Offset
@@ -280,6 +283,11 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			}
 		}
 	}()
+
+	err = <-chErr
+	if err != nil {
+		return nil, err
+	}
 
 	return sub, nil
 }

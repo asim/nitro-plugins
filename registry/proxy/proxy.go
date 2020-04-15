@@ -90,7 +90,7 @@ func (s *proxy) Register(service *registry.Service, opts ...registry.RegisterOpt
 	return gerr
 }
 
-func (s *proxy) Deregister(service *registry.Service) error {
+func (s *proxy) Deregister(service *registry.Service, opts ...registry.DeregisterOption) error {
 	b, err := json.Marshal(service)
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func (s *proxy) Deregister(service *registry.Service) error {
 	return gerr
 }
 
-func (s *proxy) GetService(service string) ([]*registry.Service, error) {
+func (s *proxy) GetService(service string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	var gerr error
 	for _, addr := range s.opts.Addrs {
 		scheme := "http"
@@ -174,7 +174,7 @@ func (s *proxy) GetService(service string) ([]*registry.Service, error) {
 	return nil, gerr
 }
 
-func (s *proxy) ListServices() ([]*registry.Service, error) {
+func (s *proxy) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	var gerr error
 	for _, addr := range s.opts.Addrs {
 		scheme := "http"

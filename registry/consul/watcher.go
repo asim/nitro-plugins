@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/api/watch"
 	"github.com/micro/go-micro/v2/registry"
+	regutil "github.com/micro/go-micro/v2/util/registry"
 )
 
 type consulWatcher struct {
@@ -163,7 +164,7 @@ func (cw *consulWatcher) serviceHandler(idx uint64, data interface{}) {
 
 			// it's an update rather than creation
 			if len(nodes) > 0 {
-				delService := registry.CopyService(oldService)
+				delService := regutil.CopyService(oldService)
 				delService.Nodes = nodes
 				cw.next <- &registry.Result{Action: "delete", Service: delService}
 			}

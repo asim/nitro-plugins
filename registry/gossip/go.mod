@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/memberlist v0.1.5
 	github.com/leodido/go-urn v1.2.0 // indirect
-	github.com/micro/go-micro/v2 v2.4.1-0.20200411193729-3ce2ab88f553
+	github.com/micro/go-micro/v2 v2.4.1-0.20200415145051-62cedf64daaf
 	github.com/micro/mdns v0.3.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect

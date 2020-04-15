@@ -754,7 +754,7 @@ func (g *gossipRegistry) Register(s *registry.Service, opts ...registry.Register
 	return nil
 }
 
-func (g *gossipRegistry) Deregister(s *registry.Service) error {
+func (g *gossipRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 
 	log.Debugf("[gossip] Registry deregistering service: %s", s.Name)
 
@@ -799,7 +799,7 @@ func (g *gossipRegistry) Deregister(s *registry.Service) error {
 	return nil
 }
 
-func (g *gossipRegistry) GetService(name string) ([]*registry.Service, error) {
+func (g *gossipRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	g.RLock()
 	service, ok := g.services[name]
 	g.RUnlock()
@@ -809,7 +809,7 @@ func (g *gossipRegistry) GetService(name string) ([]*registry.Service, error) {
 	return service, nil
 }
 
-func (g *gossipRegistry) ListServices() ([]*registry.Service, error) {
+func (g *gossipRegistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	g.RLock()
 	services := make([]*registry.Service, 0, len(g.services))
 	for _, service := range g.services {

@@ -94,7 +94,7 @@ func (e *eurekaRegistry) Register(s *registry.Service, opts ...registry.Register
 	return e.conn.RegisterInstance(instance)
 }
 
-func (e *eurekaRegistry) Deregister(s *registry.Service) error {
+func (e *eurekaRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	instance, err := serviceToInstance(s)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (e *eurekaRegistry) Deregister(s *registry.Service) error {
 	return e.conn.DeregisterInstance(instance)
 }
 
-func (e *eurekaRegistry) GetService(name string) ([]*registry.Service, error) {
+func (e *eurekaRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	app, err := e.conn.GetApp(name)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (e *eurekaRegistry) GetService(name string) ([]*registry.Service, error) {
 	return appToService(app), nil
 }
 
-func (e *eurekaRegistry) ListServices() ([]*registry.Service, error) {
+func (e *eurekaRegistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	var services []*registry.Service
 
 	apps, err := e.conn.GetApps()

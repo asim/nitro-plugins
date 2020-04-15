@@ -155,7 +155,7 @@ func (c *consulRegistry) Init(opts ...registry.Option) error {
 	return nil
 }
 
-func (c *consulRegistry) Deregister(s *registry.Service) error {
+func (c *consulRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	if len(s.Nodes) == 0 {
 		return errors.New("Require at least one node")
 	}
@@ -297,7 +297,7 @@ func (c *consulRegistry) Register(s *registry.Service, opts ...registry.Register
 	return c.Client().Agent().PassTTL("service:"+node.Id, "")
 }
 
-func (c *consulRegistry) GetService(name string) ([]*registry.Service, error) {
+func (c *consulRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	var rsp []*consul.ServiceEntry
 	var err error
 
@@ -372,7 +372,7 @@ func (c *consulRegistry) GetService(name string) ([]*registry.Service, error) {
 	return services, nil
 }
 
-func (c *consulRegistry) ListServices() ([]*registry.Service, error) {
+func (c *consulRegistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	rsp, _, err := c.Client().Catalog().Services(c.queryOptions)
 	if err != nil {
 		return nil, err

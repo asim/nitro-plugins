@@ -84,7 +84,7 @@ func (z *zookeeperRegistry) Options() registry.Options {
 	return z.options
 }
 
-func (z *zookeeperRegistry) Deregister(s *registry.Service) error {
+func (z *zookeeperRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	if len(s.Nodes) == 0 {
 		return errors.New("Require at least one node")
 	}
@@ -170,7 +170,7 @@ func (z *zookeeperRegistry) Register(s *registry.Service, opts ...registry.Regis
 	return nil
 }
 
-func (z *zookeeperRegistry) GetService(name string) ([]*registry.Service, error) {
+func (z *zookeeperRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	l, _, err := z.client.Children(servicePath(name))
 	if err != nil {
 		return nil, err
@@ -223,7 +223,7 @@ func (z *zookeeperRegistry) GetService(name string) ([]*registry.Service, error)
 	return services, nil
 }
 
-func (z *zookeeperRegistry) ListServices() ([]*registry.Service, error) {
+func (z *zookeeperRegistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	srv, _, err := z.client.Children(prefix)
 	if err != nil {
 		return nil, err

@@ -64,7 +64,7 @@ func (m *multiRegistry) Register(s *registry.Service, opts ...registry.RegisterO
 
 }
 
-func (m *multiRegistry) Deregister(s *registry.Service) error {
+func (m *multiRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	var wg sync.WaitGroup
 	var errs []error
 
@@ -105,7 +105,7 @@ func (m *multiRegistry) Deregister(s *registry.Service) error {
 	return nil
 }
 
-func (m *multiRegistry) GetService(n string) ([]*registry.Service, error) {
+func (m *multiRegistry) GetService(n string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	var wg sync.WaitGroup
 	var errs []error
 	var svcs []*registry.Service
@@ -161,7 +161,7 @@ func (m *multiRegistry) GetService(n string) ([]*registry.Service, error) {
 	return svcs, nil
 }
 
-func (m *multiRegistry) ListServices() ([]*registry.Service, error) {
+func (m *multiRegistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	var wg sync.WaitGroup
 	var errs []error
 	var svcs []*registry.Service

@@ -144,7 +144,7 @@ func (c *kregistry) Register(s *registry.Service, opts ...registry.RegisterOptio
 }
 
 // Deregister nils out any things set in Register
-func (c *kregistry) Deregister(s *registry.Service) error {
+func (c *kregistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	if len(s.Nodes) == 0 {
 		return errors.New("you must deregister at least one node")
 	}
@@ -174,7 +174,7 @@ func (c *kregistry) Deregister(s *registry.Service) error {
 
 // GetService will get all the pods with the given service selector,
 // and build services from the annotations.
-func (c *kregistry) GetService(name string) ([]*registry.Service, error) {
+func (c *kregistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	pods, err := c.client.ListPods(map[string]string{
 		svcSelectorPrefix + serviceName(name): svcSelectorValue,
 	})
@@ -225,7 +225,7 @@ func (c *kregistry) GetService(name string) ([]*registry.Service, error) {
 }
 
 // ListServices will list all the service names
-func (c *kregistry) ListServices() ([]*registry.Service, error) {
+func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	pods, err := c.client.ListPods(podSelector)
 	if err != nil {
 		return nil, err

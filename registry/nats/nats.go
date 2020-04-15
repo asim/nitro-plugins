@@ -330,7 +330,7 @@ func (n *natsRegistry) Register(s *registry.Service, opts ...registry.RegisterOp
 	return conn.Publish(n.watchTopic, b)
 }
 
-func (n *natsRegistry) Deregister(s *registry.Service) error {
+func (n *natsRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	if err := n.deregister(s); err != nil {
 		return err
 	}
@@ -347,7 +347,7 @@ func (n *natsRegistry) Deregister(s *registry.Service) error {
 	return conn.Publish(n.watchTopic, b)
 }
 
-func (n *natsRegistry) GetService(s string) ([]*registry.Service, error) {
+func (n *natsRegistry) GetService(s string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	services, err := n.query(s, getQuorum(n.opts))
 	if err != nil {
 		return nil, err
@@ -355,7 +355,7 @@ func (n *natsRegistry) GetService(s string) ([]*registry.Service, error) {
 	return services, nil
 }
 
-func (n *natsRegistry) ListServices() ([]*registry.Service, error) {
+func (n *natsRegistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	s, err := n.query("", 0)
 	if err != nil {
 		return nil, err

@@ -60,17 +60,15 @@ func NewHandlerWrapper(opts ...server.Option) server.HandlerWrapper {
 		[]string{"method"},
 	)
 
-	reg := prometheus.NewRegistry()
-	wrapreg := prometheus.WrapRegistererWith(md, reg)
+	wrapreg := prometheus.WrapRegistererWith(md, prometheus.DefaultRegisterer)
 	wrapreg.MustRegister(
-		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
-		prometheus.NewGoCollector(),
+		//prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
+		//prometheus.NewGoCollector(),
 		opsCounter,
 		timeCounterSummary,
 		timeCounterHistogram,
 	)
 
-	prometheus.DefaultGatherer = reg
 	prometheus.DefaultRegisterer = wrapreg
 
 	return func(fn server.HandlerFunc) server.HandlerFunc {

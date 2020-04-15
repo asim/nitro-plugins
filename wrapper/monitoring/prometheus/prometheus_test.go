@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/micro/go-micro/v2/broker"
+	bmemory "github.com/micro/go-micro/v2/broker/memory"
 	"github.com/micro/go-micro/v2/client"
 	"github.com/micro/go-micro/v2/client/selector"
 	"github.com/micro/go-micro/v2/registry/memory"
@@ -34,8 +36,9 @@ func (t *testHandler) Method(ctx context.Context, req *TestRequest, rsp *TestRes
 
 func TestPrometheusMetrics(t *testing.T) {
 	// setup
-	registry := memory.NewRegistry()
-	sel := selector.NewSelector(selector.Registry(registry))
+	reg := memory.NewRegistry()
+	brk := bmemory.NewBroker(broker.Registry(reg))
+	sel := selector.NewSelector(selector.Registry(reg))
 
 	name := "test"
 	id := "id-1234567890"
@@ -50,7 +53,8 @@ func TestPrometheusMetrics(t *testing.T) {
 		server.Name(name),
 		server.Version(version),
 		server.Id(id),
-		server.Registry(registry),
+		server.Registry(reg),
+		server.Broker(brk),
 		server.WrapHandler(
 			NewHandlerWrapper(
 				server.Metadata(md),

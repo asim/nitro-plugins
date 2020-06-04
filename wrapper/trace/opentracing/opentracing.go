@@ -4,6 +4,7 @@ package opentracing
 import (
 	"fmt"
 
+	"strings"
 	"context"
 
 	"github.com/micro/go-micro/v2/client"
@@ -36,10 +37,15 @@ func StartSpanFromContext(ctx context.Context, tracer opentracing.Tracer, name s
 		opts = append(opts, opentracing.ChildOf(spanCtx))
 	}
 
+	newMD := make(metadata.Metadata)
 	sp := tracer.StartSpan(name, opts...)
 
 	if err := sp.Tracer().Inject(sp.Context(), opentracing.TextMap, opentracing.TextMapCarrier(md)); err != nil {
 		return nil, nil, err
+	}
+
+	for k, v := range newMD {
+		md.Set(strings.Title(k), v)
 	}
 
 	ctx = opentracing.ContextWithSpan(ctx, sp)

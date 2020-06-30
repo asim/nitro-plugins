@@ -33,31 +33,52 @@ func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 		o(&options)
 	}
 
-	records := make([]*store.Record, 0, 1)
+	var keys []string
 
 	rkey := fmt.Sprintf("%s%s", options.Table, key)
-	val, err := r.Client.Get(rkey).Bytes()
+	// Handle Prefix
+	// TODO suffix
+	if options.Prefix {
+		prefix_key := fmt.Sprintf("%s*", rkey)
+		r.Client.Keys(key)
+		fkeys, err := r.Client.Keys(prefix_key).Result()
+		if err != nil {
+			return nil, err
+		}
+		// TODO Limit Offset
 
-	if err != nil && err == redis.Nil {
-		return nil, store.ErrNotFound
-	} else if err != nil {
-		return nil, err
+		keys = append(keys, fkeys...)
+
+	} else {
+		keys = []string{rkey}
 	}
 
-	if val == nil {
-		return nil, store.ErrNotFound
-	}
+	records := make([]*store.Record, 0, len(keys))
 
-	d, err := r.Client.TTL(rkey).Result()
-	if err != nil {
-		return nil, err
-	}
+	for _, rkey = range keys {
+		val, err := r.Client.Get(rkey).Bytes()
 
-	records = append(records, &store.Record{
-		Key:    key,
-		Value:  val,
-		Expiry: d,
-	})
+		if err != nil && err == redis.Nil {
+			return nil, store.ErrNotFound
+		} else if err != nil {
+			return nil, err
+		}
+
+		if val == nil {
+			return nil, store.ErrNotFound
+		}
+
+		d, err := r.Client.TTL(rkey).Result()
+		if err != nil {
+			return nil, err
+		}
+
+		records = append(records, &store.Record{
+			Key:    key,
+			Value:  val,
+			Expiry: d,
+		})
+	}
 
 	return records, nil
 }

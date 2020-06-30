@@ -40,7 +40,6 @@ func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 	// TODO suffix
 	if options.Prefix {
 		prefix_key := fmt.Sprintf("%s*", rkey)
-		r.Client.Keys(key)
 		fkeys, err := r.Client.Keys(prefix_key).Result()
 		if err != nil {
 			return nil, err

@@ -3,7 +3,9 @@ package redis
 import (
 	"github.com/go-redis/redis/v7"
 	"github.com/micro/go-micro/v2/store"
+	"os"
 	"testing"
+	"time"
 )
 
 func Test_rkv_configure(t *testing.T) {
@@ -79,39 +81,42 @@ func Test_rkv_configure(t *testing.T) {
 	}
 }
 
-//func Test_Store(t *testing.T) {
-//	r := new(rkv)
-//
-//	//r.options = store.Options{Nodes: []string{"redis://:password@127.0.0.1:6379"}}
-//	//r.options = store.Options{Nodes: []string{"127.0.0.1:6379"}}
-//	r.options = store.Options{Nodes: []string{"redis://127.0.0.1:6379"}}
-//
-//	if err := r.configure(); err != nil {
-//		t.Error(err)
-//		return
-//	}
-//
-//	key := "myTest"
-//	rec := store.Record{
-//		Key:    key,
-//		Value:  []byte("myValue"),
-//		Expiry: 2 * time.Minute,
-//	}
-//
-//	err := r.Write(&rec)
-//	if err != nil {
-//		t.Errorf("Write Erroe. Error: %v", err)
-//	}
-//	rec1, err := r.Read(key)
-//	if err != nil {
-//		t.Errorf("Read Error. Error: %v\n", err)
-//	}
-//	err = r.Delete(rec1[0].Key)
-//	if err != nil {
-//		t.Errorf("Delete error %v\n", err)
-//	}
-//	_, err = r.List()
-//	if err != nil {
-//		t.Errorf("listing error %v\n", err)
-//	}
-//}
+func Test_Store(t *testing.T) {
+	if tr := os.Getenv("TRAVIS"); len(tr) > 0 {
+		t.Skip()
+	}
+	r := new(rkv)
+
+	//r.options = store.Options{Nodes: []string{"redis://:password@127.0.0.1:6379"}}
+	//r.options = store.Options{Nodes: []string{"127.0.0.1:6379"}}
+	r.options = store.Options{Nodes: []string{"redis://127.0.0.1:6379"}}
+
+	if err := r.configure(); err != nil {
+		t.Error(err)
+		return
+	}
+
+	key := "myTest"
+	rec := store.Record{
+		Key:    key,
+		Value:  []byte("myValue"),
+		Expiry: 2 * time.Minute,
+	}
+
+	err := r.Write(&rec)
+	if err != nil {
+		t.Errorf("Write Erroe. Error: %v", err)
+	}
+	rec1, err := r.Read(key)
+	if err != nil {
+		t.Errorf("Read Error. Error: %v\n", err)
+	}
+	err = r.Delete(rec1[0].Key)
+	if err != nil {
+		t.Errorf("Delete error %v\n", err)
+	}
+	_, err = r.List()
+	if err != nil {
+		t.Errorf("listing error %v\n", err)
+	}
+}

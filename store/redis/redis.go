@@ -3,9 +3,9 @@ package redis
 import (
 	"fmt"
 
+	"github.com/go-redis/redis/v7"
 	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/store"
-	redis "gopkg.in/redis.v5"
 )
 
 type rkv struct {
@@ -39,8 +39,8 @@ func (r *rkv) Read(key string, opts ...store.ReadOption) ([]*store.Record, error
 	// Handle Prefix
 	// TODO suffix
 	if options.Prefix {
-		prefix_key := fmt.Sprintf("%s*", rkey)
-		fkeys, err := r.Client.Keys(prefix_key).Result()
+		prefixKey := fmt.Sprintf("%s*", rkey)
+		fkeys, err := r.Client.Keys(prefixKey).Result()
 		if err != nil {
 			return nil, err
 		}
@@ -147,17 +147,24 @@ func NewStore(opts ...store.Option) store.Store {
 }
 
 func (r *rkv) configure() error {
+	var redisOptions *redis.Options
 	nodes := r.options.Nodes
 
 	if len(nodes) == 0 {
-		nodes = []string{"127.0.0.1:6379"}
+		nodes = []string{"redis://127.0.0.1:6379"}
 	}
 
-	r.Client = redis.NewClient(&redis.Options{
-		Addr:     nodes[0],
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
+	redisOptions, err := redis.ParseURL(nodes[0])
+	if err != nil {
+		//Backwards compatibility
+		redisOptions = &redis.Options{
+			Addr:     nodes[0],
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		}
+	}
+
+	r.Client = redis.NewClient(redisOptions)
 
 	return nil
 }

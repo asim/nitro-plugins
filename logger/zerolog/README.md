@@ -8,7 +8,7 @@
 func ExampleWithOut() {
   logger.DefaultLogger = zerolog.NewLogger(logger.WithOutput(os.Stdout), logger.WithLevel(logger.DebugLevel))
 
-  logger.Infof(logger.InfoLevel, "testing: %s", "Infof")
+  logger.Logf(logger.InfoLevel, "testing: %s", "Infof")
 
   // Output:
   // {"level":"info","message":"testing: Infof"}

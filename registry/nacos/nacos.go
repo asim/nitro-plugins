@@ -1,6 +1,7 @@
 package nacos
 
 import (
+	"context"
 	"errors"
 	"net"
 	"strconv"
@@ -48,19 +49,15 @@ func configure(c *nacosRegistry, opts ...registry.Option) error {
 	for _, o := range opts {
 		o(&c.opts)
 	}
-	clientConfig := constant.ClientConfig{}
-	contentPath := "/nacos"
 	if c.opts.Context != nil {
-		if contextPath, ok := c.opts.Context.Value("context_path").(string); ok {
-			contentPath = contextPath
-		}
-		if clientConfig, ok := c.opts.Context.Value("client_config").(constant.ClientConfig); ok {
-			clientConfig = clientConfig
+		if client, ok := c.opts.Context.Value("naming_client").(naming_client.INamingClient); ok {
+			c.namingClient = client
+			return nil
 		}
 	}
-
+	clientConfig := constant.ClientConfig{}
 	serverConfigs := make([]constant.ServerConfig, 0)
-
+	contextPath := "/nacos"
 	// iterate the options addresses
 	for _, address := range c.opts.Addrs {
 		// check we have a port
@@ -69,7 +66,7 @@ func configure(c *nacosRegistry, opts ...registry.Option) error {
 			serverConfigs = append(serverConfigs, constant.ServerConfig{
 				IpAddr:      addr,
 				Port:        8848,
-				ContextPath: contentPath,
+				ContextPath: contextPath,
 			})
 		} else if err == nil {
 			p, err := strconv.ParseUint(port, 10, 64)
@@ -79,7 +76,7 @@ func configure(c *nacosRegistry, opts ...registry.Option) error {
 			serverConfigs = append(serverConfigs, constant.ServerConfig{
 				IpAddr:      addr,
 				Port:        p,
-				ContextPath: contentPath,
+				ContextPath: contextPath,
 			})
 		}
 	}
@@ -104,52 +101,59 @@ func (c *nacosRegistry) Init(opts ...registry.Option) error {
 }
 
 func (c *nacosRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
-	host, port, err := getNodeIpPort(s)
-	if err != nil {
-		return err
-	}
 	var options registry.DeregisterOptions
 	for _, o := range opts {
 		o(&options)
 	}
-
+	withContext := false
 	param := vo.DeregisterInstanceParam{}
 	if options.Context != nil {
 		if p, ok := options.Context.Value("deregister_instance_param").(vo.DeregisterInstanceParam); ok {
 			param = p
+			withContext = ok
 		}
 	}
-	param.Ip = host
-	param.Port = uint64(port)
-	param.ServiceName = s.Name
+	if !withContext {
+		host, port, err := getNodeIpPort(s)
+		if err != nil {
+			return err
+		}
+		param.Ip = host
+		param.Port = uint64(port)
+		param.ServiceName = s.Name
+	}
 
-	_, err = c.namingClient.DeregisterInstance(param)
+	_, err := c.namingClient.DeregisterInstance(param)
 	return err
 }
 
 func (c *nacosRegistry) Register(s *registry.Service, opts ...registry.RegisterOption) error {
-	host, port, err := getNodeIpPort(s)
-	if err != nil {
-		return err
-	}
 	var options registry.RegisterOptions
 	for _, o := range opts {
 		o(&options)
 	}
-	// use first node
-
+	withContext := false
 	param := vo.RegisterInstanceParam{}
 	if options.Context != nil {
-		if p, ok := options.Context.Value("deregister_instance_param").(vo.RegisterInstanceParam); ok {
+		if p, ok := options.Context.Value("register_instance_param").(vo.RegisterInstanceParam); ok {
 			param = p
+			withContext = ok
 		}
 	}
-	param.Ip = host
-	param.Port = uint64(port)
-	param.Metadata = s.Metadata
-	param.ServiceName = s.Name
-
-	_, err = c.namingClient.RegisterInstance(param)
+	if !withContext {
+		host, port, err := getNodeIpPort(s)
+		if err != nil {
+			return err
+		}
+		s.Nodes[0].Metadata["version"] = s.Version
+		param.Ip = host
+		param.Port = uint64(port)
+		param.Metadata = s.Nodes[0].Metadata
+		param.ServiceName = s.Name
+		param.Enable = true
+		param.Healthy = true
+	}
+	_, err := c.namingClient.RegisterInstance(param)
 	return err
 }
 
@@ -158,19 +162,19 @@ func (c *nacosRegistry) GetService(name string, opts ...registry.GetOption) ([]*
 	for _, o := range opts {
 		o(&options)
 	}
-	param := vo.SelectInstancesParam{}
+	param := vo.GetServiceParam{}
 	if options.Context != nil {
-		if p, ok := options.Context.Value("select_instances_param").(vo.SelectInstancesParam); ok {
+		if p, ok := options.Context.Value("select_instances_param").(vo.GetServiceParam); ok {
 			param = p
 		}
 	}
 	param.ServiceName = name
-	instances, err := c.namingClient.SelectInstances(param)
+	service, err := c.namingClient.GetService(param)
 	if err != nil {
 		return nil, err
 	}
 	services := make([]*registry.Service, 0)
-	for _, v := range instances {
+	for _, v := range service.Hosts {
 		nodes := make([]*registry.Node, 0)
 		nodes = append(nodes, &registry.Node{
 			Id:       v.InstanceId,
@@ -205,14 +209,14 @@ func (c *nacosRegistry) ListServices(opts ...registry.ListOption) ([]*registry.S
 		return nil, err
 	}
 	var registryServices []*registry.Service
-	for _, v := range services {
-		registryServices = append(registryServices, &registry.Service{Name: v.Name})
+	for _, v := range services.Doms {
+		registryServices = append(registryServices, &registry.Service{Name: v})
 	}
 	return registryServices, nil
 }
 
 func (c *nacosRegistry) Watch(opts ...registry.WatchOption) (registry.Watcher, error) {
-	return nil, nil
+	return NewNacosWatcher(c, opts...)
 }
 
 func (c *nacosRegistry) String() string {
@@ -225,7 +229,9 @@ func (c *nacosRegistry) Options() registry.Options {
 
 func NewRegistry(opts ...registry.Option) registry.Registry {
 	nacos := &nacosRegistry{
-		opts: registry.Options{},
+		opts: registry.Options{
+			Context: context.Background(),
+		},
 	}
 	configure(nacos, opts...)
 	return nacos

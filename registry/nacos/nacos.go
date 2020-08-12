@@ -15,7 +15,7 @@ import (
 	mnet "github.com/micro/go-micro/v2/util/net"
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
 
-	"github.com/micro/go-micro/v2/cmd"
+	"github.com/micro/go-micro/v2/config/cmd"
 	"github.com/micro/go-micro/v2/registry"
 )
 

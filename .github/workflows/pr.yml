@@ -19,11 +19,11 @@ jobs:
 
     - name: Get dependencies
       run: |
-        ./.travis/deps.sh
+        ./deps.sh
 
     - name: Run tests
       id: tests
       env:
         TRAVIS: yes
         IN_TRAVIS_CI: yes
-      run: ./.travis/tests.sh
+      run: ./tests.sh

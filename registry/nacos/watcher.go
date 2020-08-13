@@ -26,6 +26,7 @@ type nacosWatcher struct {
 	services      map[string][]*registry.Service
 	cacheServices map[string][]model.SubscribeService
 	param         *vo.SubscribeParam
+	Doms          []string
 }
 
 func NewNacosWatcher(nr *nacosRegistry, opts ...registry.WatchOption) (registry.Watcher, error) {
@@ -41,13 +42,39 @@ func NewNacosWatcher(nr *nacosRegistry, opts ...registry.WatchOption) (registry.
 		services:      make(map[string][]*registry.Service),
 		cacheServices: make(map[string][]model.SubscribeService),
 		param:         new(vo.SubscribeParam),
+		Doms:          make([]string, 0),
 	}
+	withContext := false
 	if wo.Context != nil {
 		if p, ok := wo.Context.Value("subscribe_param").(vo.SubscribeParam); ok {
 			nw.param = &p
+			withContext = ok
+			nw.param.SubscribeCallback = nw.callBackHandle
+			go nr.namingClient.Subscribe(nw.param)
 		}
 	}
-	nw.param.SubscribeCallback = nw.callBackHandle
+	if !withContext {
+		param := vo.GetAllServiceInfoParam{}
+		services, err := nr.namingClient.GetAllServicesInfo(param)
+		if err != nil {
+			return nil, err
+		}
+		param.PageNo = 1
+		param.PageSize = uint32(services.Count)
+		services, err = nr.namingClient.GetAllServicesInfo(param)
+		if err != nil {
+			return nil, err
+		}
+		nw.Doms = services.Doms
+		for _, v := range nw.Doms {
+			param := &vo.SubscribeParam{
+				ServiceName:       v,
+				SubscribeCallback: nw.callBackHandle,
+			}
+			go nr.namingClient.Subscribe(param)
+		}
+	}
+
 	return &nw, nil
 }
 
@@ -59,8 +86,14 @@ func (nw *nacosWatcher) callBackHandle(services []model.SubscribeService, err er
 	serviceName := services[0].ServiceName
 
 	if nw.cacheServices[serviceName] == nil {
+
+		nw.Lock()
+		nw.cacheServices[serviceName] = services
+		nw.Unlock()
+
 		for _, v := range services {
 			nw.next <- &registry.Result{Action: "create", Service: buildRegistryService(&v)}
+			return
 		}
 	} else {
 		for _, subscribeService := range services {
@@ -68,17 +101,26 @@ func (nw *nacosWatcher) callBackHandle(services []model.SubscribeService, err er
 			for _, cacheService := range nw.cacheServices[serviceName] {
 				if subscribeService.InstanceId == cacheService.InstanceId {
 					if !reflect.DeepEqual(subscribeService, cacheService) {
+						//update instance
 						nw.next <- &registry.Result{Action: "update", Service: buildRegistryService(&subscribeService)}
+						return
 					}
 					create = false
 				}
 			}
+			//new instance
 			if create {
+
 				nw.next <- &registry.Result{Action: "create", Service: buildRegistryService(&subscribeService)}
+
+				nw.Lock()
+				nw.cacheServices[serviceName] = append(nw.cacheServices[serviceName], subscribeService)
+				nw.Unlock()
+				return
 			}
 		}
 
-		for _, cacheService := range nw.cacheServices[serviceName] {
+		for index, cacheService := range nw.cacheServices[serviceName] {
 			del := true
 			for _, subscribeService := range services {
 				if subscribeService.InstanceId == cacheService.InstanceId {
@@ -87,10 +129,16 @@ func (nw *nacosWatcher) callBackHandle(services []model.SubscribeService, err er
 			}
 			if del {
 				nw.next <- &registry.Result{Action: "delete", Service: buildRegistryService(&cacheService)}
+
+				nw.Lock()
+				nw.cacheServices[serviceName][index] = model.SubscribeService{}
+				nw.Unlock()
+
+				return
 			}
 		}
 	}
-	nw.cacheServices[serviceName] = services
+
 }
 
 func buildRegistryService(v *model.SubscribeService) (s *registry.Service) {
@@ -125,11 +173,21 @@ func (nw *nacosWatcher) Next() (r *registry.Result, err error) {
 }
 
 func (nw *nacosWatcher) Stop() {
-	nw.nr.namingClient.Unsubscribe(nw.param)
 	select {
 	case <-nw.exit:
 		return
 	default:
 		close(nw.exit)
+		if len(nw.Doms) > 0 {
+			for _, v := range nw.Doms {
+				param := &vo.SubscribeParam{
+					ServiceName:       v,
+					SubscribeCallback: nw.callBackHandle,
+				}
+				nw.nr.namingClient.Unsubscribe(param)
+			}
+		} else {
+			nw.nr.namingClient.Unsubscribe(nw.param)
+		}
 	}
 }

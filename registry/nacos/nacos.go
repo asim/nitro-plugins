@@ -152,6 +152,8 @@ func (c *nacosRegistry) Register(s *registry.Service, opts ...registry.RegisterO
 		param.ServiceName = s.Name
 		param.Enable = true
 		param.Healthy = true
+		param.Weight = 1.0
+		param.Ephemeral = true
 	}
 	_, err := c.namingClient.RegisterInstance(param)
 	return err
@@ -162,13 +164,17 @@ func (c *nacosRegistry) GetService(name string, opts ...registry.GetOption) ([]*
 	for _, o := range opts {
 		o(&options)
 	}
+	withContext := false
 	param := vo.GetServiceParam{}
 	if options.Context != nil {
 		if p, ok := options.Context.Value("select_instances_param").(vo.GetServiceParam); ok {
 			param = p
+			withContext = ok
 		}
 	}
-	param.ServiceName = name
+	if !withContext {
+		param.ServiceName = name
+	}
 	service, err := c.namingClient.GetService(param)
 	if err != nil {
 		return nil, err
@@ -198,11 +204,21 @@ func (c *nacosRegistry) ListServices(opts ...registry.ListOption) ([]*registry.S
 	for _, o := range opts {
 		o(&options)
 	}
+	withContext := false
 	param := vo.GetAllServiceInfoParam{}
 	if options.Context != nil {
 		if p, ok := options.Context.Value("get_all_service_info_param").(vo.GetAllServiceInfoParam); ok {
 			param = p
+			withContext = ok
 		}
+	}
+	if !withContext {
+		services, err := c.namingClient.GetAllServicesInfo(param)
+		if err != nil {
+			return nil, err
+		}
+		param.PageNo = 1
+		param.PageSize = uint32(services.Count)
 	}
 	services, err := c.namingClient.GetAllServicesInfo(param)
 	if err != nil {

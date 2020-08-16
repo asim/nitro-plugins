@@ -15,10 +15,6 @@ import (
 
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
 
-	"github.com/nacos-group/nacos-sdk-go/common/constant"
-
-	"github.com/nacos-group/nacos-sdk-go/clients"
-
 	"github.com/micro/go-micro/v2/registry"
 )
 
@@ -27,35 +23,6 @@ func getRegistry(nacosClientMock naming_client.INamingClient) registry.Registry 
 		options.Context = context.WithValue(options.Context, "naming_client", nacosClientMock)
 	})
 	return r
-}
-func buildNamingClient() (client naming_client.INamingClient, err error) {
-	sc := []constant.ServerConfig{
-		{
-			IpAddr: "192.168.23.178",
-			Port:   8848,
-		},
-	}
-
-	cc := constant.ClientConfig{
-		TimeoutMs: 5000,
-	}
-	client, err = clients.CreateNamingClient(map[string]interface{}{
-		"serverConfigs": sc,
-		"clientConfig":  cc,
-	})
-	return
-}
-
-//nacos new registry
-func TestNacosNewRegistry(t *testing.T) {
-	t.Run("NewRegistryWithContext", func(t *testing.T) {
-		client, err := buildNamingClient()
-		assert.Nil(t, err)
-		r := NewRegistry(func(options *registry.Options) {
-			options.Context = context.WithValue(options.Context, "naming_client", client)
-		})
-		assert.NotNil(t, r)
-	})
 }
 
 //nacos registry

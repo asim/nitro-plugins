@@ -3,14 +3,15 @@ package nsq
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/micro/go-micro/v2/broker"
-	"github.com/micro/go-micro/v2/codec/json"
 	"github.com/micro/go-micro/v2/cmd"
+	"github.com/micro/go-micro/v2/codec/json"
 	"github.com/nsqio/go-nsq"
 )
 
@@ -95,6 +96,10 @@ func (n *nsqBroker) Options() broker.Options {
 }
 
 func (n *nsqBroker) Address() string {
+	if len(n.addrs) <= 0 {
+		return ""
+	}
+
 	return n.addrs[rand.Intn(len(n.addrs))]
 }
 
@@ -187,6 +192,10 @@ func (n *nsqBroker) Disconnect() error {
 }
 
 func (n *nsqBroker) Publish(topic string, message *broker.Message, opts ...broker.PublishOption) error {
+	if len(n.p) <= 0 {
+		return errors.New("no producer")
+	}
+
 	p := n.p[rand.Intn(len(n.p))]
 
 	options := broker.PublishOptions{}

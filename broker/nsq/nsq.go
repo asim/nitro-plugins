@@ -96,11 +96,10 @@ func (n *nsqBroker) Options() broker.Options {
 }
 
 func (n *nsqBroker) Address() string {
-	if len(n.addrs) <= 0 {
-		return ""
+	if len(n.addrs) > 0 {
+		return n.addrs[rand.Intn(len(n.addrs))]
 	}
-
-	return n.addrs[rand.Intn(len(n.addrs))]
+	return "127.0.0.1:4150"
 }
 
 func (n *nsqBroker) Connect() error {

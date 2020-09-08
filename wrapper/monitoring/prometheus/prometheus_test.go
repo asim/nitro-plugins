@@ -46,7 +46,7 @@ func TestPrometheusMetrics(t *testing.T) {
 	version := "1.2.3.4"
 
 	c := client.NewClient(
-		client.Router(rrouter.NewRouter(router.Registry(registry))),
+		client.Router(rrouter.NewRouter(router.Registry(reg))),
 	)
 	s := server.NewServer(
 		server.Name(name),

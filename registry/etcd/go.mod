@@ -1,7 +1,12 @@
-module github.com/micro/go-plugins/registry/etcd/v2
+module github.com/micro/go-plugins/registry/etcd/v3
 
-go 1.13
+go 1.15
 
-require github.com/micro/go-micro/v2 v2.9.1-0.20200716153311-f9bf56239306
+require (
+	github.com/coreos/etcd v3.3.25+incompatible
+	github.com/micro/go-micro/v3 v3.0.0-beta.2
+	github.com/mitchellh/hashstructure v1.0.0
+	go.uber.org/zap v1.16.0
+)
 
-replace github.com/coreos/etcd => github.com/ozonru/etcd v3.3.20-grpc1.27-origmodule+incompatible
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0

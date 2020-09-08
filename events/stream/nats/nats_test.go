@@ -1,0 +1,3 @@
+// +build nats
+
+package nats

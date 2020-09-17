@@ -1,14 +1,21 @@
 package zookeeper
 
 import (
+	"net"
 	"testing"
+	"time"
 
 	"github.com/micro/go-micro/v3/registry"
 	"github.com/smartystreets/assertions/should"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func testZKRegistry(t *testing.T) {
+func TestZKRegistry(t *testing.T) {
+	if !rawConnect("127.0.0.1", "2181") {
+		t.Skip("zk server is unavailable. skip this test")
+		return
+	}
+
 	reg := NewRegistry(
 		registry.Addrs("127.0.0.1:2181"),
 		registry.Timeout(20),
@@ -69,4 +76,19 @@ func testZKRegistry(t *testing.T) {
 			})
 		})
 	})
+}
+
+func rawConnect(host string, port string) bool {
+	timeout := time.Second
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), timeout)
+	defer conn.Close()
+
+	if err != nil {
+		return false
+	}
+	if conn != nil {
+		return true
+	}
+
+	return false
 }

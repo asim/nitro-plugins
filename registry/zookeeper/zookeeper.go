@@ -3,31 +3,43 @@ package zookeeper
 
 import (
 	"errors"
+	"fmt"
+	"github.com/google/uuid"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/micro/go-micro/v2/cmd"
-	log "github.com/micro/go-micro/v2/logger"
-	"github.com/micro/go-micro/v2/registry"
-	"github.com/samuel/go-zookeeper/zk"
-
+	"github.com/go-zookeeper/zk"
+	log "github.com/micro/go-micro/v3/logger"
+	"github.com/micro/go-micro/v3/registry"
 	hash "github.com/mitchellh/hashstructure"
 )
 
 var (
-	prefix = "/micro-registry"
+	prefix        = "/micro/registry"
+	defaultDomain = "micro"
 )
 
 type zookeeperRegistry struct {
-	client  *zk.Conn
-	options registry.Options
-	sync.Mutex
-	register map[string]uint64
+	client       *zk.Conn
+	options      registry.Options
+	register     map[string]register
+	leases       map[string]leases
+	ttlSupported bool
+	sync.RWMutex
 }
 
-func init() {
-	cmd.DefaultRegistries["zookeeper"] = NewRegistry
+type serviceInfo struct {
+	service     *registry.Service
+	leaseID     int64
+	leaseOK     bool
+	pathKey     string
+	opts        registry.RegisterOptions
+	currentNode *registry.Node
 }
+
+type register map[string]uint64
+type leases map[string]int64
 
 func configure(z *zookeeperRegistry, opts ...registry.Option) error {
 	cAddrs := z.options.Addrs
@@ -62,17 +74,19 @@ func configure(z *zookeeperRegistry, opts ...registry.Option) error {
 	// connect to zookeeper
 	c, _, err := zk.Connect(cAddrs, time.Second*z.options.Timeout)
 	if err != nil {
-		log.Error(err.Error())
+		log.Errorf("connect to zk err: %s", err)
 		return err
 	}
 
 	// create our prefix path
-	if err := createPath(prefix, []byte{}, c); err != nil {
-		log.Error(err.Error())
+	if err := createPath(prefix, []byte{}, c, -1); err != nil {
+		log.Errorf("create zk path err: %s", err)
 		return err
 	}
 
 	z.client = c
+	z.ttlSupported = z.checkSupportTTL()
+
 	return nil
 }
 
@@ -86,17 +100,40 @@ func (z *zookeeperRegistry) Options() registry.Options {
 
 func (z *zookeeperRegistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	if len(s.Nodes) == 0 {
-		return errors.New("Require at least one node")
+		return errors.New("Require at least one currentNode")
 	}
 
-	// delete our hash of the service
-	z.Lock()
-	delete(z.register, s.Name)
-	z.Unlock()
+	// parse the options
+	var options registry.DeregisterOptions
+	for _, o := range opts {
+		o(&options)
+	}
+	if len(options.Domain) == 0 {
+		options.Domain = defaultDomain
+	}
 
 	for _, node := range s.Nodes {
-		err := z.client.Delete(nodePath(s.Name, node.Id), -1)
-		if err != nil {
+		z.Lock()
+		// delete our hash of the service
+		nodes, ok := z.register[options.Domain]
+		if ok {
+			delete(nodes, s.Name+node.Id)
+			z.register[options.Domain] = nodes
+		}
+
+		// delete our lease of the service
+		leases, ok := z.leases[options.Domain]
+		if ok {
+			delete(leases, s.Name+node.Id)
+			z.leases[options.Domain] = leases
+		}
+		z.Unlock()
+
+		if log.V(log.TraceLevel, log.DefaultLogger) {
+			log.Tracef("Deregister %s id %s", s.Name, node.Id)
+		}
+
+		if err := z.client.Delete(nodePath(options.Domain, s.Name, node.Id), -1); err != nil {
 			return err
 		}
 	}
@@ -106,81 +143,42 @@ func (z *zookeeperRegistry) Deregister(s *registry.Service, opts ...registry.Der
 
 func (z *zookeeperRegistry) Register(s *registry.Service, opts ...registry.RegisterOption) error {
 	if len(s.Nodes) == 0 {
-		return errors.New("Require at least one node")
+		return errors.New("Require at least one currentNode ")
 	}
 
-	var options registry.RegisterOptions
-	for _, o := range opts {
-		o(&options)
-	}
+	var gerr error
 
-	// create hash of service; uint64
-	h, err := hash.Hash(s, nil)
-	if err != nil {
-		return err
-	}
-
-	// get existing hash
-	z.Lock()
-	v, ok := z.register[s.Name]
-	z.Unlock()
-
-	// the service is unchanged, skip registering
-	if ok && v == h {
-		return nil
-	}
-
-	service := &registry.Service{
-		Name:      s.Name,
-		Version:   s.Version,
-		Metadata:  s.Metadata,
-		Endpoints: s.Endpoints,
-	}
-
+	// register each currentNode individually
 	for _, node := range s.Nodes {
-		service.Nodes = []*registry.Node{node}
-		exists, _, err := z.client.Exists(nodePath(service.Name, node.Id))
-		if err != nil {
-			return err
-		}
-
-		srv, err := encode(service)
-		if err != nil {
-			return err
-		}
-
-		if exists {
-			_, err := z.client.Set(nodePath(service.Name, node.Id), srv, -1)
-			if err != nil {
-				return err
-			}
-		} else {
-			err := createPath(nodePath(service.Name, node.Id), srv, z.client)
-			if err != nil {
-				return err
-			}
+		if err := z.registerNode(s, node, opts...); err != nil {
+			gerr = err
 		}
 	}
 
-	// save our hash of the service
-	z.Lock()
-	z.register[s.Name] = h
-	z.Unlock()
-
-	return nil
+	return gerr
 }
 
 func (z *zookeeperRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) {
-	l, _, err := z.client.Children(servicePath(name))
+	var options registry.GetOptions
+	for _, o := range opts {
+		o(&options)
+	}
+	if len(options.Domain) == 0 {
+		options.Domain = defaultDomain
+	}
+
+	path := servicePath(options.Domain, name)
+	l, _, err := z.client.Children(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("name: [%s] path: [%s] err: [%s] ", name, path, err)
 	}
 
 	serviceMap := make(map[string]*registry.Service)
 
 	for _, n := range l {
-		_, stat, err := z.client.Children(nodePath(name, n))
+		_, stat, err := z.client.Children(nodePath(options.Domain, name, n))
 		if err != nil {
+			log.Errorf("get children err: %s", err)
 			return nil, err
 		}
 
@@ -188,13 +186,15 @@ func (z *zookeeperRegistry) GetService(name string, opts ...registry.GetOption) 
 			continue
 		}
 
-		b, _, err := z.client.Get(nodePath(name, n))
+		b, _, err := z.client.Get(nodePath(options.Domain, name, n))
 		if err != nil {
+			log.Errorf("get currentNode path err: %s", err)
 			return nil, err
 		}
 
 		sn, err := decode(b)
 		if err != nil {
+			log.Errorf("decode currentNode data err: %s", err)
 			return nil, err
 		}
 
@@ -224,28 +224,38 @@ func (z *zookeeperRegistry) GetService(name string, opts ...registry.GetOption) 
 }
 
 func (z *zookeeperRegistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
-	srv, _, err := z.client.Children(prefix)
+	var options registry.ListOptions
+	for _, o := range opts {
+		o(&options)
+	}
+	if len(options.Domain) == 0 {
+		options.Domain = defaultDomain
+	}
+
+	var p = prefixWithDomain(options.Domain)
+	srv, _, err := z.client.Children(p)
 	if err != nil {
+		log.Errorf("list get children err: %s", err)
 		return nil, err
 	}
 
 	serviceMap := make(map[string]*registry.Service)
 
 	for _, key := range srv {
-		s := servicePath(key)
+		s := servicePath(options.Domain, key)
 		nodes, _, err := z.client.Children(s)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, node := range nodes {
-			_, stat, err := z.client.Children(nodePath(key, node))
+			_, stat, err := z.client.Children(nodePath(options.Domain, key, node))
 			if err != nil {
 				return nil, err
 			}
 
 			if stat.NumChildren == 0 {
-				b, _, err := z.client.Get(nodePath(key, node))
+				b, _, err := z.client.Get(nodePath(options.Domain, key, node))
 				if err != nil {
 					return nil, err
 				}
@@ -276,43 +286,198 @@ func (z *zookeeperRegistry) Watch(opts ...registry.WatchOption) (registry.Watche
 }
 
 func NewRegistry(opts ...registry.Option) registry.Registry {
-	var options registry.Options
+	z := &zookeeperRegistry{
+		options:  registry.Options{},
+		register: make(map[string]register),
+		leases:   make(map[string]leases),
+	}
+
+	if err := configure(z, opts...); err != nil {
+		log.Errorf("configure zk err: %s", err)
+	}
+
+	return z
+}
+
+func (z *zookeeperRegistry) registerNode(s *registry.Service, node *registry.Node, opts ...registry.RegisterOption) error {
+	if len(s.Nodes) == 0 {
+		return errors.New("Require at least one currentNode ")
+	}
+
+	si := z.prepareService(s, node, opts...)
+	srv, _ := encode(si.service)
+
+	if z.ttlSupported {
+		z.registerWithTTL(si, srv)
+	} else {
+		z.registerWithoutTTL(si, srv)
+	}
+
+	return nil
+}
+
+func (z *zookeeperRegistry) registerWithoutTTL(si *serviceInfo, srv []byte) (err error) {
+	// create hash of service; uint64
+	h, err := hash.Hash(si.service, nil)
+	if err != nil {
+		return
+	}
+
+	// get existing hash
+	z.Lock()
+	v, ok := z.register[si.opts.Domain][si.service.Name+si.currentNode.Id]
+	z.Unlock()
+
+	// the service is unchanged, skip registering
+	if ok && v == h {
+		return nil
+	}
+
+	exists, _, err := z.client.Exists(si.pathKey)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		_, err := z.client.Set(si.pathKey, srv, -1)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := createPath(si.pathKey, srv, z.client, -1)
+		if err != nil {
+			return err
+		}
+	}
+
+	// save our hash of the service
+	z.Lock()
+	z.register[si.opts.Domain][si.service.Name+si.currentNode.Id] = h
+	z.Unlock()
+
+	return
+}
+
+func (z *zookeeperRegistry) registerWithTTL(si *serviceInfo, srv []byte) {
+	if !si.leaseOK {
+		// look for the existing key
+		bytes, stat, err := z.client.Get(si.pathKey)
+		if err != nil {
+			log.Infof("[register currentNode] get key [%s] err: %s", si.pathKey, err)
+		} else if bytes != nil { // currentNode exits
+			si.leaseID = stat.Mzxid
+
+			// decode the existing currentNode
+			srv, err := decode(bytes)
+			if err != nil {
+				// dont return
+				log.Error(err)
+			} else {
+				// create hash of service; uint64
+				h, err := hash.Hash(srv.Nodes[0], nil)
+				if err != nil {
+					log.Error(err)
+				} else {
+					// save the info
+					z.Lock()
+					z.leases[si.opts.Domain][si.service.Name+si.currentNode.Id] = si.leaseID
+					z.register[si.opts.Domain][si.service.Name+si.currentNode.Id] = h
+					z.Unlock()
+				}
+			}
+		}
+	}
+
+	if si.leaseID > 0 {
+		// renew the lease if it exists
+		if log.V(log.TraceLevel, log.DefaultLogger) {
+			log.Tracef("Renewing existing lease for %s %d", si.service.Name, si.leaseID)
+		}
+
+		// delete first, sdk doest have setTTL method.
+		err := z.client.Delete(si.pathKey, -1)
+		if err != nil {
+			log.Errorf("delete before renew key: [%s] err: %", si.pathKey, err)
+			return
+		}
+
+		err = createPath(si.pathKey, srv, z.client, si.opts.TTL)
+		if err != nil {
+			log.Errorf("renew after delete key: [%s] err: %", si.pathKey, err)
+			return
+		}
+	}
+
+	z.Lock()
+	z.leases[si.opts.Domain][si.service.Name+si.currentNode.Id] = si.leaseID
+	z.Unlock()
+}
+
+func (z *zookeeperRegistry) prepareService(s *registry.Service, node *registry.Node, opts ...registry.RegisterOption) *serviceInfo {
+	// parse the options
+	var options registry.RegisterOptions
 	for _, o := range opts {
 		o(&options)
 	}
-
-	if options.Timeout == 0 {
-		options.Timeout = 5
+	if len(options.Domain) == 0 {
+		options.Domain = defaultDomain
 	}
 
-	cAddrs := make([]string, 0, len(options.Addrs))
-	for _, addr := range options.Addrs {
-		if len(addr) == 0 {
-			continue
-		}
-		cAddrs = append(cAddrs, addr)
+	if s.Metadata == nil {
+		s.Metadata = map[string]string{}
+	}
+	s.Metadata["domain"] = options.Domain
+
+	if node.Metadata == nil {
+		node.Metadata = map[string]string{}
+	}
+	node.Metadata["domain"] = options.Domain
+
+	z.Lock()
+	if _, ok := z.register[options.Domain]; !ok {
+		z.register[options.Domain] = make(register)
 	}
 
-	if len(cAddrs) == 0 {
-		cAddrs = []string{"127.0.0.1:2181"}
+	// ensure the leases and registers are setup for this domain
+	if _, ok := z.leases[options.Domain]; !ok && z.ttlSupported {
+		z.leases[options.Domain] = make(leases)
 	}
 
-	// connect to zookeeper
-	c, _, err := zk.Connect(cAddrs, time.Second*options.Timeout)
-	if err != nil {
-		log.Error(err.Error())
-		return nil
+	// check to see if we already have a lease cached
+	leaseID, ok := z.leases[options.Domain][s.Name+node.Id]
+	z.Unlock()
+
+	si := &serviceInfo{
+		service: &registry.Service{
+			Name:      s.Name,
+			Version:   s.Version,
+			Metadata:  s.Metadata,
+			Endpoints: s.Endpoints,
+			Nodes:     []*registry.Node{node},
+		},
+		currentNode: node,
+		leaseID:     leaseID,
+		leaseOK:     ok,
+		pathKey:     nodePath(options.Domain, s.Name, node.Id),
+		opts:        options,
 	}
 
-	// create our prefix path
-	if err := createPath(prefix, []byte{}, c); err != nil {
-		log.Error(err.Error())
-		return nil
+	return si
+}
+
+// checkSupportTTL zk doest support TTL currentNode by default. we need to check it.
+func (z *zookeeperRegistry) checkSupportTTL() bool {
+	tempID := uuid.New().String()
+	key := nodePath(defaultDomain, tempID, tempID)
+	_, err := z.client.CreateTTL(key, []byte{}, zk.FlagTTL, nil, time.Second)
+	if err != nil && strings.Contains(err.Error(), "-6") {
+		log.Infof("[check ttl] this zk doesn't support TTL")
+		return false
 	}
 
-	return &zookeeperRegistry{
-		client:   c,
-		options:  options,
-		register: make(map[string]uint64),
-	}
+	// delete it as soon as possible and ignore the error
+	// because if success above, it will be deleted in one second.
+	_ = z.client.Delete(key, -1)
+
+	return true
 }

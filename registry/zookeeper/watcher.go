@@ -4,8 +4,8 @@ import (
 	"errors"
 	"path"
 
-	"github.com/micro/go-micro/v2/registry"
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/go-zookeeper/zk"
+	"github.com/micro/go-micro/v3/registry"
 )
 
 type zookeeperWatcher struct {
@@ -31,6 +31,10 @@ func newZookeeperWatcher(r *zookeeperRegistry, opts ...registry.WatchOption) (re
 	var wo registry.WatchOptions
 	for _, o := range opts {
 		o(&wo)
+	}
+
+	if len(wo.Domain) == 0 {
+		wo.Domain = defaultDomain
 	}
 
 	zw := &zookeeperWatcher{
@@ -88,7 +92,7 @@ func (zw *zookeeperWatcher) watchDir(key string) {
 				return
 			}
 
-			// a node was added -- watch the new node
+			// a currentNode was added -- watch the new currentNode
 			for _, i := range newChildren {
 				if contains(children, i) {
 					continue
@@ -179,7 +183,6 @@ func (zw *zookeeperWatcher) watchKey(key string) {
 }
 
 func (zw *zookeeperWatcher) watch() {
-
 	services := func() []string {
 		if len(zw.wo.Service) > 0 {
 			return []string{zw.wo.Service}

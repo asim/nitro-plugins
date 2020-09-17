@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestZKRegistry(t *testing.T) {
+func testZKRegistry(t *testing.T) {
 	reg := NewRegistry(
 		registry.Addrs("127.0.0.1:2181"),
 		registry.Timeout(20),

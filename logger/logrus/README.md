@@ -12,14 +12,14 @@ import (
 )
 
 func ExampleWithOutput() {
-  logger.DefaultLogger = NewLogger(logger.WithOutput(os.Stdout))
-  logger.Infof(logger.InfoLevel, "testing: %s", "Infof")
+	logger.DefaultLogger = NewLogger(logger.WithOutput(os.Stdout))
+	logger.Infof("testing: %s", "Infof")
 }
 
 func ExampleWithLogger() {
-	l:= logrus.New() // *logrus.Logger
+	l := logrus.New() // *logrus.Logger
 	logger.DefaultLogger = NewLogger(WithLogger(l))
-  logger.Infof(logger.InfoLevel, "testing: %s", "Infof")
+	logger.Infof("testing: %s", "Infof")
 }
 ```
 

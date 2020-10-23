@@ -5,12 +5,12 @@ import (
 	cryptotls "crypto/tls"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
+	"go.etcd.io/etcd/clientv3"
 	"github.com/micro/go-micro/v2/store"
 	"google.golang.org/grpc"
 )
 
-// Implement all the options from https://pkg.go.dev/github.com/coreos/etcd/clientv3?tab=doc#Config
+// Implement all the options from https://pkg.go.dev/go.etcd.io/etcd/clientv3?tab=doc#Config
 // Need to use non basic types in context.WithValue
 type autoSyncInterval string
 type dialTimeout string
